@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   Cafology Delights — Premium Café Identity
+   ============================================
+   Primary:  Deep Burgundy  #6B2737
+   Dark:     Espresso Brown #2C1810
+   Light:    Tan / Latte    #D2B48C
+   Gold:     Caramel        #C8956C
+   Cream:    Light Brown    #EADBC8
+   ============================================ */
+
+@layer base {
+  body {
+    @apply bg-sbCream text-sbText font-lexend antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-black tracking-tight;
+  }
+}
+
+@layer components {
+  .sb-btn-primary {
+    @apply bg-sbGreen hover:bg-sbDark text-white font-bold py-3.5 px-10 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-sb-hover active:scale-95 inline-flex items-center justify-center;
+  }
+
+  .sb-btn-black {
+    @apply bg-sbDark hover:bg-black text-white font-bold py-3.5 px-10 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-sb-hover active:scale-95 inline-flex items-center justify-center;
+  }
+
+  .sb-btn-outline {
+    @apply border-2 border-sbDark hover:bg-sbDark hover:text-white text-sbDark font-bold py-3.5 px-10 rounded-2xl transition-all duration-300 active:scale-95 inline-flex items-center justify-center;
+  }
+
+  .sb-btn-outline-green {
+    @apply border-2 border-sbGreen text-sbGreen hover:bg-sbGreen hover:text-white font-bold py-3.5 px-10 rounded-2xl transition-all duration-300 active:scale-95 inline-flex items-center justify-center;
+  }
+
+  .sb-card {
+    @apply bg-white rounded-[2rem] shadow-sb p-8 transition-all duration-300 hover:shadow-sb-hover border border-white/30 backdrop-blur-sm;
+  }
+
+  .sb-input {
+    @apply w-full border-2 border-sbLight/30 focus:border-sbGreen rounded-2xl outline-none py-4 px-6 text-lg transition-all duration-300 bg-white shadow-inner;
+  }
+
+  .sb-section-green {
+    @apply bg-sbGreen text-white;
+  }
+
+  .sb-section-light {
+    @apply bg-sbLight text-sbDark;
+  }
+
+  .sb-section-cream {
+    @apply bg-sbCream text-sbDark;
+  }
+
+  .sb-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest;
+  }
+}
+
+/* Custom Rewards Progress Bar */
+.reward-progress {
+  @apply h-4 w-full bg-sbDark/10 rounded-full overflow-hidden shadow-inner border border-white/20;
+}
+
+.reward-progress-fill {
+  @apply h-full bg-gradient-to-r from-sbGold to-sbGreen transition-all duration-1000 ease-out;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Smooth glass effect for nav */
+.glass-nav {
+  @apply bg-sbCream/90 backdrop-blur-xl border-b border-sbDark/5 sticky top-0 z-50;
+}
