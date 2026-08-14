@@ -1,8 +1,8 @@
-  import bcrypt from "bcryptjs";
-  import User from "../models/User.js";
-  import generateToken from "../utils/generateToken.js";
+import bcrypt from "bcryptjs";
+import User from "../models/User.js";
+import generateToken from "../utils/generateToken.js";
 
- // Register
+// Register
 export const register = async (req, res) => {
   try {
     const { name, phone, password, role } = req.body;
@@ -47,49 +47,8 @@ export const register = async (req, res) => {
   }
 };
 
-  // Login
-  export const login = async (req, res) => {
-    try {
-      const { phone, password } = req.body;
-
-      const user = await User.findOne({ phone });
-
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid credentials",
-        });
-      }
-
-      const isMatch = await bcrypt.compare(
-        password,
-        user.password
-      );
-
-      if (!isMatch) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid credentials",
-        });
-      }
-
-      const token = generateToken(user._id);
-
-      res.status(200).json({
-        success: true,
-        token,
-        user,
-      });
-    } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-  };
-
-  // Admin Login
-export const adminLogin = async (req, res) => {
+// Login
+export const login = async (req, res) => {
   try {
     const { phone, password } = req.body;
 
@@ -114,7 +73,57 @@ export const adminLogin = async (req, res) => {
       });
     }
 
-    // Only Admin & Staff
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      token,
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Admin Login
+export const adminLogin = async (req, res) => {
+  try {
+    const { phone, password } = req.body;
+
+    console.log("LOGIN PHONE:", phone);
+    console.log("LOGIN PASSWORD:", password);
+
+    const user = await User.findOne({ phone });
+
+    console.log("USER FOUND:", !!user);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    console.log("DB PHONE:", user.phone);
+    console.log("DB ROLE:", user.role);
+    console.log("DB PASSWORD:", user.password);
+
+    const isMatch = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    console.log("PASSWORD MATCH:", isMatch);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Password does not match",
+      });
+    }
 
     if (
       user.role !== "admin" &&
@@ -136,19 +145,19 @@ export const adminLogin = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("ADMIN LOGIN ERROR:", error);
 
     res.status(500).json({
       success: false,
       message: error.message,
     });
-
   }
 };
 
-  // Current User
-  export const getMe = async (req, res) => {
-    res.status(200).json({
-      success: true,
-      user: req.user,
-    });
-  };
+// Current User
+export const getMe = async (req, res) => {
+  res.status(200).json({
+    success: true,
+    user: req.user,
+  });
+};

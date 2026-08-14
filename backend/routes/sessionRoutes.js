@@ -12,6 +12,12 @@ router.get(
 );
 
 router.get(
+  "/my-transactions",
+  protect,
+  getMyTransactions
+);
+
+router.get(
     "/history",
     protect,
     authorize("admin", "staff"),
@@ -46,11 +52,6 @@ router.patch(
   paySession
 );
 
-router.get(
-  "/my-transactions",
-  protect,
-  getMyTransactions
-);
 
 
 

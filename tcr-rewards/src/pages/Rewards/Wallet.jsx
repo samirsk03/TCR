@@ -28,6 +28,7 @@ const Wallet = () => {
     try {
       const res = await api.get("/session/my-transactions");
       setTransactions(res.data.data || []);
+      console.log("Fetched transactions:", res.data.data);
     } catch (err) {
       console.log(err);
     } finally {

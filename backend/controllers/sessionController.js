@@ -692,22 +692,40 @@ export const getSessionHistory = async (req, res) => {
 };
 
 export const getMyTransactions = async (req, res) => {
-    try {
-        const sessions = await Session.find({
-            customerId: req.user._id,
-            status: "paid",
-        }).sort({ paidAt: -1 });
+     console.log("=== MY TRANSACTIONS CONTROLLER HIT ===");
+  try {
+    console.log("Logged User:", req.user._id);
 
-        res.status(200).json({
-            success: true,
-            count: sessions.length,
-            data: sessions,
-        });
+    const allSessions = await Session.find({});
+    console.log("Total Sessions:", allSessions.length);
 
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message,
-        });
-    }
+    const userSessions = await Session.find({
+      customerId: req.user._id,
+    });
+
+    console.log(
+      "Sessions for user:",
+      userSessions.length
+    );
+
+    const paidSessions = await Session.find({
+      customerId: req.user._id,
+      status: "paid",
+    });
+
+    console.log(
+      "Paid Sessions:",
+      paidSessions.length
+    );
+
+    res.json({
+      success: true,
+      data: paidSessions,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
 };
