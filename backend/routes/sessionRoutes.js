@@ -1,6 +1,6 @@
 import express from "express";
 import { protect, authorize } from "../middleware/authMiddleware.js";
-import { getActiveSessions, getSessionById,getMyTransactions, requestBill, generateBill, paySession, getSessionHistory } from "../controllers/sessionController.js";
+import { getActiveSessions, getSessionById,getMyCurrentOrder , getMyTransactions, requestBill, generateBill, paySession, getSessionHistory } from "../controllers/sessionController.js";
 
 const router = express.Router();
 
@@ -9,6 +9,12 @@ router.get(
   protect,
   authorize("admin", "staff"),
   getActiveSessions
+);
+
+router.get(
+  "/my-current-order",
+  protect,
+  getMyCurrentOrder
 );
 
 router.get(

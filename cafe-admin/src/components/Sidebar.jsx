@@ -5,7 +5,11 @@ import {
   UtensilsCrossed,
   History,
   LogOut, 
-
+  SquareMenu,
+  BadgeIndianRupee,
+  MonitorCog,
+  MessageSquareHeart,
+  BookUser
 } from "lucide-react";
 
 const menus = [
@@ -17,7 +21,12 @@ const menus = [
   {
     name: "Menu",
     path: "/dashboard/menu",
-    icon: LayoutDashboard,
+    icon: SquareMenu,
+  },
+  {
+    name: "Users",
+    path: "/dashboard/users",
+    icon: BookUser,
   },
   {
     name: "Pending Orders",
@@ -27,7 +36,7 @@ const menus = [
   {
     name: "Offers ",
     path: "/dashboard/offers",
-    icon: ClipboardList,
+    icon: BadgeIndianRupee,
   },
   {
     name: "Active Sessions",
@@ -42,7 +51,12 @@ const menus = [
   {
     name: "Settings",
     path: "/dashboard/settings",
-    icon: History,
+    icon: MonitorCog,
+  },
+  {
+    name: "Feedback",
+    path: "/dashboard/feedback",
+    icon: MessageSquareHeart,
   },
 ];
 

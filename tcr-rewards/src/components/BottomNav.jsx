@@ -1,12 +1,13 @@
 // src/components/BottomNav.jsx
 import { NavLink } from 'react-router-dom';
-import { Home, Coffee, Wallet, MessageSquare, Tag } from 'lucide-react';
+import { Home, Coffee,ShoppingBasket, Wallet, MessageSquare, Tag } from 'lucide-react';
 
 const BottomNav = () => {
   const navItems = [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/menu', icon: Coffee, label: 'Menu' },
     { to: '/wallet', icon: Wallet, label: 'Rewards' },
+    { to: '/cart', icon: ShoppingBasket, label: 'Cart' },
     { to: '/review', icon: MessageSquare, label: 'Review' },
     { to: '/offers', icon: Tag, label: 'Offers' },
   ];

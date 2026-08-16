@@ -729,3 +729,34 @@ export const getMyTransactions = async (req, res) => {
     });
   }
 };
+
+// user see his current order if he has any active session
+export const getMyCurrentOrder = async (req, res) => {
+  try {
+    const session = await Session.findOne({
+      customerId: req.user._id,
+      status: "active",
+    })
+      .sort({ createdAt: -1 })
+      .populate("items.menuId");
+
+    if (!session) {
+      return res.status(200).json({
+        success: true,
+        data: null,
+        message: "No active order found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: session,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

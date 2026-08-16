@@ -10,7 +10,8 @@ import SessionDetails from "./pages/SessionDetails";
 import Offers from "./pages/Offer";
 import SettingsPage from "./pages/Setting";
 import DashboardLayout from "./layouts/DashboardLayout";
-
+import Feedback from "./pages/Feedback";
+import User from "./pages/User";
 
 function App() {
   return (
@@ -36,7 +37,8 @@ function App() {
           
           <Route path="offers" element={<Offers />} />
           <Route path="history" element={<History />} />
-
+          <Route path="feedback" element={<Feedback />} />
+          <Route path="users" element={<User />} />
           <Route
             path="active-sessions"
             element={<ActiveSessions />}

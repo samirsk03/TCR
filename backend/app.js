@@ -9,6 +9,7 @@ import sessionRoutes from "./routes/sessionRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import offerRoutes from "./routes/offerRoutes.js";
 import storeSettingsRoutes from "./routes/storeSettingsRoutes.js";
+import feedbackRoutes from "./routes/feedbackRoutes.js";
 
 const app = express();
 
@@ -26,6 +27,8 @@ app.use(
 app.use("/api/auth", authRoutes);
 
 app.use("/api/settings", storeSettingsRoutes);
+
+app.use("/api/feedback", feedbackRoutes);
 
 app.use("/api/menus", menuRoutes);
 
