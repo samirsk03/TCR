@@ -78,8 +78,8 @@ export default function Cart() {
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          err.message ||
-          "Unable to place order."
+        err.message ||
+        "Unable to place order."
       );
     } finally {
       setLoading(false);
@@ -90,10 +90,10 @@ export default function Cart() {
 
   const rewardPoints = settings
     ? Math.floor(
-        (subtotal *
-          settings.rewardPercentage) /
-          100
-      )
+      (subtotal *
+        settings.rewardPercentage) /
+      100
+    )
     : 0;
 
   return (
@@ -150,7 +150,7 @@ export default function Cart() {
                 <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
 
                   {currentOrder.status ===
-                  "bill_requested" ? (
+                    "bill_requested" ? (
                     <CheckCircle2
                       className="text-sbGold"
                       size={25}
@@ -170,7 +170,7 @@ export default function Cart() {
 
                     <h2 className="text-xl font-black">
                       {currentOrder.status ===
-                      "bill_requested"
+                        "bill_requested"
                         ? "Bill Requested"
                         : "Order Accepted"}
                     </h2>
@@ -243,7 +243,13 @@ export default function Cart() {
 
                         <p className="text-green-600 text-sm font-bold">
                           +
-                          {item.rewardPoints *
+                          {(settings
+                            ? Math.floor(
+                              (item.price *
+                                settings.rewardPercentage) /
+                              100
+                            )
+                            : 0) *
                             item.quantity}{" "}
                           points
                         </p>
@@ -391,8 +397,14 @@ export default function Cart() {
                       </p>
 
                       <p className="text-green-600 text-sm font-bold mt-1">
-                        +{item.rewardPoints *
-                          item.quantity}{" "}
+                        +{(settings
+                            ? Math.floor(
+                              (item.price *
+                                settings.rewardPercentage) /
+                              100
+                            )
+                            : 0) *
+                            item.quantity}{" "}
                         Reward Points
                       </p>
 
@@ -489,8 +501,8 @@ export default function Cart() {
                 {loading
                   ? "Placing Order..."
                   : currentOrder
-                  ? "Add to Current Order"
-                  : "Place Order"}
+                    ? "Add to Current Order"
+                    : "Place Order"}
 
               </button>
 
@@ -504,4 +516,4 @@ export default function Cart() {
 
     </div>
   );
-}
+} 
