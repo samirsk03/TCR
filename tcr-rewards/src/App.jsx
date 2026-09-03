@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate,  } from "react-router-dom";
+import { useEffect } from "react";
 import { useAuth } from "./context/AuthContext";
 
 // Pages
@@ -16,6 +17,8 @@ import Cart from "./pages/Cart/Cart";
 // Components
 import Navbar from "./components/Navbar";
 import BottomNav from "./components/BottomNav";
+import NotificationPrompt from "./components/NotificationPrompt";
+import {listenForMessages} from "./services/notificationService";
 
 const ProtectedRoute = ({ children }) => {
   const { isLoggedIn } = useAuth();
@@ -31,6 +34,13 @@ const PublicRoute = ({ children }) => {
 
 function App() {
   const { isLoggedIn } = useAuth();
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      listenForMessages();
+    }
+  }, [isLoggedIn]);
+
 
   return (
     <div className="flex flex-col min-h-screen bg-sbCream">
@@ -143,6 +153,7 @@ function App() {
       </main>
 
       {isLoggedIn && <BottomNav />}
+      {isLoggedIn && <NotificationPrompt />}
     </div>
   );
 }

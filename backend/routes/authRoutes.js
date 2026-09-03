@@ -1,9 +1,9 @@
 import express from "express";
 
 import {
-  register, login, getMe, adminLogin, getAllUsers, createStaffOrAdmin
+  register, login, getMe, adminLogin, getAllUsers, createStaffOrAdmin, saveFcmToken, sendTestNotification,
 } from "../controllers/authController.js";
-
+import { sendBirthdayNotifications } from "../controllers/birthdayController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -18,6 +18,12 @@ router.post("/login", login);
 
 router.get("/me", protect, getMe);
 
+router.post("/save-fcm-token", protect, saveFcmToken);
+
 router.get("/users", protect, getAllUsers);
+
+router.post("/test-notification", protect, sendTestNotification);
+
+router.post("/birthday-notifications", protect, sendBirthdayNotifications);
 
 export default router;

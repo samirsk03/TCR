@@ -1,6 +1,50 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
+import { getMessaging } from "firebase-admin/messaging";
+import firebaseAdmin from "../config/FirebaseAdmin.js";
+
+
+export const sendTestNotification = async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user.fcmToken) {
+      return res.status(400).json({
+        success: false,
+        message: "No FCM token found for this user",
+      });
+    }
+
+    const message = {
+      token: user.fcmToken,
+
+      notification: {
+        title: "🎉 TCR Rewards",
+        body: "This is a test notification from TCR Rewards!",
+      },
+
+      data: {
+        type: "test",
+      },
+    };
+
+    const response = await getMessaging().send(message);
+
+    res.status(200).json({
+      success: true,
+      message: "Notification sent successfully",
+      response,
+    });
+  } catch (error) {
+    console.error("❌ TEST NOTIFICATION ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 
 // Register
 export const register = async (req, res) => {
@@ -236,6 +280,33 @@ export const getAllUsers = async (req, res) => {
       success: true,
       count: users.length,
       data: users,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Save FCM Token
+export const saveFcmToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "FCM token is required",
+      });
+    }
+
+    req.user.fcmToken = token;
+    await req.user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "FCM token saved successfully",
     });
   } catch (error) {
     res.status(500).json({

@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
+    fcmToken: {
+      type: String,
+      default: null,
+    },
+    dateOfBirth: {
+      type: Date,
+    },
     name: {
       type: String,
       required: true,

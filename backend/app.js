@@ -10,6 +10,7 @@ import uploadRoutes from "./routes/uploadRoutes.js";
 import offerRoutes from "./routes/offerRoutes.js";
 import storeSettingsRoutes from "./routes/storeSettingsRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import "./scheduler/birthdayScheduler.js";
 
 const app = express();
 

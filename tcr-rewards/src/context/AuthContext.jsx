@@ -94,13 +94,18 @@ export const AuthProvider = ({ children }) => {
 
   // ---------------- LOGOUT ----------------
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setToken("");
+ const logout = useCallback(() => {
+  setUser(null);
+  setToken("");
 
-    localStorage.removeItem("tcr_user");
-    localStorage.removeItem("tcr_token");
-  }, []);
+  // Current auth keys
+  localStorage.removeItem("tcr_user");
+  localStorage.removeItem("tcr_token");
+
+  // Old auth keys
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
+}, []);
 
   return (
     <AuthContext.Provider
