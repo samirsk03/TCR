@@ -1,6 +1,6 @@
 import User from "../models/User.js";
 import { getMessaging } from "firebase-admin/messaging";
-import firebaseAdmin from "../config/FirebaseAdmin.js";
+import firebaseAdmin from "../config/firebaseAdmin.js";
 
 // Send birthday notifications to customers whose birthday is today
 export const sendBirthdayNotifications = async (req, res) => {
