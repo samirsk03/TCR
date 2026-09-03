@@ -13,6 +13,7 @@ import Review from "./pages/Review/Review";
 import Profile from "./pages/Profile/Profile";
 import Offers from "./pages/Offers";
 import Cart from "./pages/Cart/Cart";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -68,6 +69,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route
             path="/offers"

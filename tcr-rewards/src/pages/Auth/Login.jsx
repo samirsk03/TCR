@@ -115,12 +115,13 @@ const Login = () => {
 
           <div className="flex flex-col gap-8 pt-4">
 
-            <Link
-              to="/reset-password"
-              className="text-sbGreen font-bold hover:underline w-fit"
+            <button
+              type="button"
+              onClick={() => navigate("/forgot-password")}
+              className="text-sm text-blue-600 hover:underline"
             >
               Forgot Password?
-            </Link>
+            </button>
 
             <button
               type="submit"

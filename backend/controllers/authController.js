@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 import { getMessaging } from "firebase-admin/messaging";
 import firebaseAdmin from "../config/firebaseAdmin.js";
+import { getAuth } from "firebase-admin/auth";
 
 
 export const sendTestNotification = async (req, res) => {
@@ -310,6 +311,73 @@ export const saveFcmToken = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Reset Password using Firebase Phone OTP
+export const resetPassword = async (req, res) => {
+  try {
+    const { idToken, newPassword } = req.body;
+
+    if (!idToken || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Firebase ID token and new password are required",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters",
+      });
+    }
+
+    // Verify Firebase OTP authentication
+    const decodedToken = await getAuth(firebaseAdmin).verifyIdToken(
+      idToken
+    );
+
+    const firebasePhone = decodedToken.phone_number;
+
+    if (!firebasePhone) {
+      return res.status(400).json({
+        success: false,
+        message: "No phone number found in Firebase verification",
+      });
+    }
+
+    // Firebase gives +91XXXXXXXXXX
+    // Our MongoDB stores XXXXXXXXXX
+    const phone = firebasePhone.replace(/^\+91/, "");
+
+    const user = await User.findOne({ phone });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No account found with this phone number",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("RESET PASSWORD ERROR:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
