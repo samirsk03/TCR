@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 import { getMessaging } from "firebase-admin/messaging";
-import firebaseAdmin from "../config/FirebaseAdmin.js";
+import firebaseAdmin from "../config/firebaseAdmin.js";
 
 
 export const sendTestNotification = async (req, res) => {
