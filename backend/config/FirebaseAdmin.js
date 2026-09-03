@@ -1,5 +1,6 @@
 import { initializeApp, cert, getApps } from "firebase-admin/app";
-import serviceAccount from "./tcrrewards-firebase-adminsdk-fbsvc-1e3abc1298.json" with { type: "json" };
+
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 const firebaseAdmin =
   getApps().length === 0
