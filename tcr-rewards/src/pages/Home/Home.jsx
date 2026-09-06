@@ -9,6 +9,7 @@ const Home = () => {
    const { user, isLoggedIn } = useAuth();
    const { points, currentTier } = useRewards();
 
+console.log(user);
 
 
    
@@ -41,7 +42,7 @@ const Home = () => {
                         </div>
                      </div>
                      <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 mb-3">Star Balance</p>
-                     <h2 className="text-7xl font-black mb-10 tracking-tighter text-white">{points} <span className="text-2xl opacity-40 font-bold">Stars</span></h2>
+                     <h2 className="text-7xl font-black mb-10 tracking-tighter text-white">{user.rewardPoints} <span className="text-2xl opacity-40 font-bold">Stars</span></h2>
                      <Link to="/wallet" className="inline-flex items-center gap-3 bg-white text-sbDark font-black px-10 py-4 rounded-2xl hover:bg-sbLight transition-all shadow-lg text-sm uppercase tracking-widest">
                         View Wallet <ArrowRight size={18} />
                      </Link>

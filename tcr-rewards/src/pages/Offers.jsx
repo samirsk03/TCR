@@ -39,7 +39,11 @@ const Offers = () => {
         {offers.map((offer) => (
           <div
             key={offer._id}
-            className={`relative overflow-hidden rounded-3xl p-8 relative overflow-hidden rounded-3xl p-8 text-white shadow-xl hover:scale-[1.02] transition-all duration-300 group text-white shadow-xl hover:scale-[1.02] transition-all duration-300 group`}
+            className="relative overflow-hidden rounded-3xl p-8 shadow-xl hover:scale-[1.02] transition-all duration-300 group"
+            style={{
+              backgroundColor: offer.backgroundColor ,
+              color: offer.textColor || "#FFFFFF",
+            }}
           >
             <div className="flex flex-col h-full justify-between min-h-[200px]">
               <div>

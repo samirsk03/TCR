@@ -27,6 +27,7 @@ const Menu = () => {
       const res = await api.get("/menus");
 
       setMenuItems(res.data.data || []);
+      
 
     } catch (err) {
 
@@ -106,7 +107,6 @@ const Menu = () => {
 
   const { cart } = useCart();
 
-  console.log(cart);
 
   const filteredItems = menuItems.filter((item) => {
     const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
@@ -183,7 +183,7 @@ const Menu = () => {
 
               {/* Product Visual */}
               <div className="w-full aspect-square rounded-[3rem] bg-sbCream/50 flex items-center justify-center text-8xl md:text-9xl mb-10 shadow-inner group-hover:scale-105 transition-all duration-500 relative overflow-hidden">
-                <div className="relative z-10 drop-shadow-2xl">{item.emoji}</div>
+                <img src={item.image} alt={item.name} className="relative z-10 drop-shadow-2xl" />
                 {item.popular && (
                   <div className="absolute top-4 right-4 bg-sbGold text-white text-[9px] font-black px-4 py-1.5 rounded-xl uppercase tracking-widest shadow-lg">Popular</div>
                 )}

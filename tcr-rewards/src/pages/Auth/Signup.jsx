@@ -15,8 +15,7 @@ const Signup = () => {
     contact: "",
     password: "",
     confirmPassword: "",
-    mpin: "",
-    confirmMpin: "",
+    dateOfBirth: "",
   });
 
   const [error, setError] = useState("");
@@ -31,12 +30,10 @@ const Signup = () => {
       return setError("Passwords do not match.");
     }
 
-    if (formData.mpin !== formData.confirmMpin) {
-      return setError("MPINs do not match.");
-    }
 
-    if (formData.mpin.length !== 4) {
-      return setError("MPIN must be 4 digits.");
+
+    if (formData.password.length < 6) {
+      return setError("Password must be at least 6 characters long.");
     }
 
     setIsSubmitting(true);
@@ -46,14 +43,15 @@ const Signup = () => {
         name: formData.name,
         phone: formData.contact,
         password: formData.password,
+        dateOfBirth: formData.dateOfBirth,
       });
 
       navigate("/");
     } catch (err) {
       setError(
         err.response?.data?.message ||
-          err.message ||
-          "Signup Failed"
+        err.message ||
+        "Signup Failed"
       );
     } finally {
       setIsSubmitting(false);
@@ -99,18 +97,7 @@ const Signup = () => {
               }
             />
 
-            <input
-              type="email"
-              className="sb-input"
-              placeholder="Email (Coming Soon)"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  email: e.target.value,
-                })
-              }
-            />
+
 
             <input
               type="tel"
@@ -125,6 +112,27 @@ const Signup = () => {
                 })
               }
             />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+              <input
+                type="Date"
+                maxLength="4"
+                required
+                className="sb-input"
+                placeholder=""
+                value={formData.dateOfBirth}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    dateOfBirth: e.target.value,
+                  })
+                }
+              />
+
+
+
+            </div>
 
           </div>
 
@@ -179,40 +187,7 @@ const Signup = () => {
 
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-              <input
-                type="password"
-                maxLength="4"
-                required
-                className="sb-input"
-                placeholder="* 4 Digit MPIN"
-                value={formData.mpin}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    mpin: e.target.value,
-                  })
-                }
-              />
-
-              <input
-                type="password"
-                maxLength="4"
-                required
-                className="sb-input"
-                placeholder="* Confirm MPIN"
-                value={formData.confirmMpin}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    confirmMpin:
-                      e.target.value,
-                  })
-                }
-              />
-
-            </div>
 
           </div>
 

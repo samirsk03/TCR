@@ -50,7 +50,7 @@ export const sendTestNotification = async (req, res) => {
 // Register
 export const register = async (req, res) => {
   try {
-    const { name, phone, password, role } = req.body;
+    const { name, phone, password, dateOfBirth, role } = req.body;
 
     if (!name || !phone || !password) {
       return res.status(400).json({
@@ -74,6 +74,7 @@ export const register = async (req, res) => {
       name,
       phone,
       password: hashedPassword,
+      dateOfBirth,
       role: role || "customer",
     });
 

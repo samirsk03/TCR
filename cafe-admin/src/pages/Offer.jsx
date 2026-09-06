@@ -72,7 +72,7 @@ export default function Offers() {
       description: offer.description || "",
       terms: offer.terms || "",
       icon: offer.icon || "",
-      theme: offer.theme || "brown",
+      theme: offer.theme || "",
       startDate: offer.startDate?.slice(0, 10) || "",
       endDate: offer.endDate?.slice(0, 10) || "",
       displayOrder: offer.displayOrder,
@@ -145,12 +145,12 @@ export default function Offers() {
 
           <select
             className="border rounded p-3"
-            name="theme"
-            value={form.theme}
+            name="backgroundColor"
+            value={form.backgroundColor}
             onChange={handleChange}
           >
-            <option>brown</option>
             <option>orange</option>
+            <option>brown</option>
             <option>red</option>
             <option>green</option>
             <option>blue</option>

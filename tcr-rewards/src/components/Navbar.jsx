@@ -14,7 +14,7 @@ const Navbar = () => {
         <div className="flex items-center gap-8 md:gap-12">
           <Link to="/" className="flex items-center gap-3 transition-transform active:scale-95 group">
             <div className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-white shadow-md flex items-center justify-center p-1 group-hover:rotate-6 transition-transform overflow-hidden">
-              <img src="/logo.png" alt="The Chocolate Room" className="w-full h-full object-contain" />
+              <img src="/logo.webp" alt="The Chocolate Room" className="w-full h-full object-contain" />
             </div>
             <div className="flex flex-col leading-tight">
               <span className="font-black text-sbDark text-lg md:text-xl tracking-tight capitalize">The Chocolate Room</span>
