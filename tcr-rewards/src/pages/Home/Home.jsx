@@ -9,11 +9,6 @@ const Home = () => {
    const { user, isLoggedIn } = useAuth();
    const { points, currentTier } = useRewards();
 
-console.log(user);
-
-
-   
-
    return (
       <div className="animate-fade-in flex flex-col bg-sbCream pb-24 md:pb-0">
 

@@ -10,7 +10,8 @@ const Signup = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     contact: "",
     password: "",
@@ -23,8 +24,25 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setError("");
+
+    if (!/^\d{10}$/.test(formData.contact)) {
+      return setError("Contact number must be exactly 10 digits.");
+    }
+
+    if (!formData.dateOfBirth) {
+      return setError("Please select your complete date of birth.");
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      return setError("Passwords do not match.");
+    }
+
+    if (formData.password.length < 6) {
+      return setError("Password must be at least 6 characters long.");
+    }
+
+
 
     if (formData.password !== formData.confirmPassword) {
       return setError("Passwords do not match.");
@@ -39,8 +57,9 @@ const Signup = () => {
     setIsSubmitting(true);
 
     try {
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim();
       await signup({
-        name: formData.name,
+        name: fullName,
         phone: formData.contact,
         password: formData.password,
         dateOfBirth: formData.dateOfBirth,
@@ -87,12 +106,26 @@ const Signup = () => {
               type="text"
               required
               className="sb-input"
-              placeholder="* Name"
-              value={formData.name}
+              placeholder="* First Name"
+              value={formData.firstName}
               onChange={(e) =>
                 setFormData({
                   ...formData,
-                  name: e.target.value,
+                  firstName: e.target.value,
+                })
+              }
+            />
+
+            <input
+              type="text"
+              required
+              className="sb-input"
+              placeholder="* Last Name"
+              value={formData.lastName}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  lastName: e.target.value,
                 })
               }
             />
