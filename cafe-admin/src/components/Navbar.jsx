@@ -131,7 +131,7 @@ export default function Navbar() {
           className="fixed inset-0 z-50 bg-black/40 lg:hidden"
           onClick={() => setIsMenuOpen(false)}
         >
-          
+
           {/* Drawer */}
           <div
             className="absolute left-0 top-0 h-full w-72 bg-white dark:bg-[#231F1C] shadow-xl"
@@ -142,7 +142,7 @@ export default function Navbar() {
             <div className="h-20 flex items-center justify-between px-5 border-b border-gray-200 dark:border-[#352E2A]">
 
               <h1 className="text-2xl font-bold text-[#6F4E37]">
-                ☕ Cafe
+                ☕ Cafe Admin
               </h1>
 
               <button
@@ -164,17 +164,14 @@ export default function Navbar() {
                     key={menu.path}
                     to={menu.path}
                     end={menu.path === "/dashboard"}
-                    onClick={() => setIsMenuOpen(false)}
                     className={({ isActive }) =>
-                      `flex items-center gap-4 px-4 py-3 rounded-xl mb-2 transition-all ${
-                        isActive
-                          ? "bg-[#6F4E37] text-white"
-                          : "hover:bg-[#EFE8DF]"
+                      `flex items-center gap-4 px-4 py-3 rounded-xl mb-2 transition-all font-medium ${isActive
+                        ? "bg-[#6F4E37] text-white"
+                        : "text-gray-700 dark:text-gray-300 hover:bg-[#EFE8DF] dark:hover:bg-[#352E2A] hover:text-[#6F4E37] dark:hover:text-white"
                       }`
                     }
                   >
                     <Icon size={20} />
-
                     {menu.name}
                   </NavLink>
                 );

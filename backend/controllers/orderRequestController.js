@@ -64,10 +64,12 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
-    if (
-      order.customerId.toString() !==
-      req.user._id.toString()
-    ) {
+    const isOwner =
+      order.customerId.toString() === req.user._id.toString();
+    const isStaffOrAdmin =
+      req.user.role === "admin" || req.user.role === "staff";
+
+    if (!isOwner && !isStaffOrAdmin) {
       return res.status(403).json({
         success: false,
         message: "Access denied",
@@ -77,27 +79,29 @@ export const cancelOrder = async (req, res) => {
     if (order.status !== "pending") {
       return res.status(400).json({
         success: false,
-        message:
-          "Only pending orders can be cancelled",
+        message: "Only pending orders can be cancelled",
       });
     }
 
-    const diff =
-      Date.now() -
-      new Date(order.createdAt).getTime();
+    // 60-second window only applies to the customer cancelling their own order.
+    // Staff/admin can cancel a pending order anytime.
+    if (isOwner && !isStaffOrAdmin) {
+      const diff = Date.now() - new Date(order.createdAt).getTime();
 
-    if (diff > 60000) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Order can only be cancelled within 60 seconds",
-      });
+      if (diff > 60000) {
+        return res.status(400).json({
+          success: false,
+          message: "Order can only be cancelled within 60 seconds",
+        });
+      }
     }
 
     order.status = "cancelled";
     order.cancelledBy = req.user._id;
     order.cancelledAt = new Date();
-    order.cancelReason = "Cancelled by customer";
+    order.cancelReason = isStaffOrAdmin
+      ? "Cancelled by staff"
+      : "Cancelled by customer";
 
     await order.save();
 
@@ -105,6 +109,26 @@ export const cancelOrder = async (req, res) => {
       success: true,
       message: "Order cancelled successfully",
       data: order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+export const getCancelledOrders = async (req, res) => {
+  try {
+    const orders = await OrderRequest.find({ status: "cancelled" })
+      .populate("customerId", "name phone")
+      .populate("cancelledBy", "name employeeId")
+      .sort({ cancelledAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: orders.length,
+      data: orders,
     });
   } catch (error) {
     res.status(500).json({

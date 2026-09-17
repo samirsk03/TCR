@@ -134,7 +134,7 @@
 
   paymentMethod: {
     type: String,
-    enum: ["cash", "upi", "card"],
+    enum: ["cash", "upi", "card", "swiggy", "zomato"],
     default: null,
   },
 

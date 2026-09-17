@@ -296,7 +296,7 @@ export const paySession = async (req, res) => {
             discountReason = "",
         } = req.body;
 
-        if (!["cash", "upi", "card"].includes(paymentMethod)) {
+        if (!["cash", "upi", "card" ,"swiggy", "zomato"].includes(paymentMethod)) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid payment method",

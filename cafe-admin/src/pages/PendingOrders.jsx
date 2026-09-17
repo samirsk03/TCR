@@ -8,6 +8,7 @@ export default function PendingOrders() {
   const [refreshing, setRefreshing] = useState(false);
   const { settings } = useStoreSettings();
   const [acceptingId, setAcceptingId] = useState(null);
+  const [cancellingId, setCancellingId] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -53,6 +54,31 @@ export default function PendingOrders() {
       );
     } finally {
       setAcceptingId(null);
+    }
+  };
+
+  const handleCancel = async (id) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) {
+      return;
+    }
+
+    try {
+      setCancellingId(id);
+
+      await api.patch(`/order-request/${id}/cancel`);
+
+      alert("Order Cancelled Successfully");
+
+      fetchOrders();
+    } catch (err) {
+      console.error(err);
+
+      alert(
+        err.response?.data?.message ||
+          "Unable to cancel order."
+      );
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -137,19 +163,39 @@ export default function PendingOrders() {
 
                 </div>
 
-                <button
-                  onClick={() =>
-                    handleAccept(order._id)
-                  }
-                  disabled={
-                    acceptingId === order._id
-                  }
-                  className="bg-green-600 text-white px-5 py-2 rounded"
-                >
-                  {acceptingId === order._id
-                    ? "Accepting..."
-                    : "Accept"}
-                </button>
+                <div className="flex gap-3">
+
+                  <button
+                    onClick={() =>
+                      handleCancel(order._id)
+                    }
+                    disabled={
+                      cancellingId === order._id ||
+                      acceptingId === order._id
+                    }
+                    className="bg-red-600 text-white px-5 py-2 rounded disabled:opacity-50"
+                  >
+                    {cancellingId === order._id
+                      ? "Cancelling..."
+                      : "Cancel"}
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      handleAccept(order._id)
+                    }
+                    disabled={
+                      acceptingId === order._id ||
+                      cancellingId === order._id
+                    }
+                    className="bg-green-600 text-white px-5 py-2 rounded disabled:opacity-50"
+                  >
+                    {acceptingId === order._id
+                      ? "Accepting..."
+                      : "Accept"}
+                  </button>
+
+                </div>
 
               </div>
 

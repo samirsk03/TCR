@@ -1,7 +1,7 @@
 // src/pages/Menu/Menu.jsx
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
-import { Search, Star, ArrowRight } from "lucide-react";
+import { Search, Star, Plus, Minus } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 
 const Menu = () => {
@@ -10,35 +10,46 @@ const Menu = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [maxPrice, setMaxPrice] = useState(5000);
-  const { addToCart } = useCart();
+
+  const { cart, addToCart, increaseQuantity, decreaseQuantity } = useCart();
 
   useEffect(() => {
-
     fetchMenu();
-
   }, []);
 
   const fetchMenu = async () => {
-
     try {
-
       setLoading(true);
 
       const res = await api.get("/menus");
 
       setMenuItems(res.data.data || []);
-      
-
     } catch (err) {
-
       console.log(err);
-
     } finally {
-
       setLoading(false);
+    }
+  };
 
+  // Mirrors handleAddToCart's variant logic — first variant if any,
+  // otherwise no variant — so the quantity badge tracks the exact
+  // same cart line that clicking "+" would add to or create.
+  const getVariantName = (item) => {
+    if (item.variants?.length > 0) {
+      return item.variants[0].name;
     }
 
+    return "";
+  };
+
+  const getItemQuantity = (item) => {
+    const variantName = getVariantName(item);
+
+    const cartLine = cart.find(
+      (c) => c.menuId === item._id && c.variantName === variantName
+    );
+
+    return cartLine?.quantity || 0;
   };
 
   const handleAddToCart = (item) => {
@@ -67,8 +78,17 @@ const Menu = () => {
     });
   };
 
-  const menuCategories = useMemo(() => {
+  const handleIncrement = (item) => {
+    const variantName = getVariantName(item);
+    increaseQuantity(item._id, variantName);
+  };
 
+  const handleDecrement = (item) => {
+    const variantName = getVariantName(item);
+    decreaseQuantity(item._id, variantName);
+  };
+
+  const menuCategories = useMemo(() => {
     const categories = [
       {
         id: "all",
@@ -78,52 +98,41 @@ const Menu = () => {
     ];
 
     menuItems.forEach((item) => {
-
-      if (
-        !categories.find(
-          (c) =>
-            c.id ===
-            item.category
-        )
-      ) {
-
+      if (!categories.find((c) => c.id === item.category)) {
         categories.push({
-
           id: item.category,
-
           label: item.category,
-
           emoji: "☕",
-
         });
-
       }
-
     });
 
     return categories;
-
   }, [menuItems]);
 
-  const { cart } = useCart();
-
-
   const filteredItems = menuItems.filter((item) => {
-    const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      activeCategory === "all" || item.category === activeCategory;
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     const matchesPrice = item.price <= maxPrice;
     return matchesCategory && matchesSearch && matchesPrice;
   });
 
   return (
     <div className="animate-fade-in min-h-screen bg-transparent pb-24">
-
       {/* Header Section */}
       <header className="bg-sbDark text-sbCream pt-16 pb-32 px-6 md:px-12 text-center relative overflow-hidden">
         <div className="max-w-4xl mx-auto relative z-10">
-          <h1 className="text-4xl md:text-7xl font-black mb-8 tracking-tighter">Our <span className="text-sbGold text-glow">Collections</span></h1>
+          <h1 className="text-4xl md:text-7xl font-black mb-8 tracking-tighter">
+            Our <span className="text-sbGold text-glow">Collections</span>
+          </h1>
           <div className="relative max-w-2xl mx-auto group">
-            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-sbDark/30 group-focus-within:text-sbGreen transition-colors" size={20} />
+            <Search
+              className="absolute left-6 top-1/2 -translate-y-1/2 text-sbDark/30 group-focus-within:text-sbGreen transition-colors"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search for your favorite brew..."
@@ -144,21 +153,35 @@ const Menu = () => {
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
-            className={`flex flex-col items-center gap-4 transition-all flex-shrink-0 snap-center min-w-[110px] ${activeCategory === cat.id ? 'scale-110' : 'opacity-40 grayscale hover:opacity-100 hover:grayscale-0'
-              }`}
+            className={`flex flex-col items-center gap-4 transition-all flex-shrink-0 snap-center min-w-[110px] ${
+              activeCategory === cat.id
+                ? "scale-110"
+                : "opacity-40 grayscale hover:opacity-100 hover:grayscale-0"
+            }`}
           >
-            <div className={`w-16 h-16 md:w-20 md:h-20 rounded-[1.8rem] flex items-center justify-center text-3xl md:text-4xl shadow-lg transition-all ${activeCategory === cat.id ? 'bg-sbGreen text-white' : 'bg-sbCream text-sbDark'
-              }`}>
+            <div
+              className={`w-16 h-16 md:w-20 md:h-20 rounded-[1.8rem] flex items-center justify-center text-3xl md:text-4xl shadow-lg transition-all ${
+                activeCategory === cat.id
+                  ? "bg-sbGreen text-white"
+                  : "bg-sbCream text-sbDark"
+              }`}
+            >
               {cat.emoji}
             </div>
-            <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${activeCategory === cat.id ? 'text-sbGreen' : 'text-sbDark/40'}`}>
+            <span
+              className={`text-[10px] font-black uppercase tracking-[0.2em] ${
+                activeCategory === cat.id ? "text-sbGreen" : "text-sbDark/40"
+              }`}
+            >
               {cat.label}
             </span>
           </button>
         ))}
 
         <div className="hidden md:flex flex-col items-center gap-2 border-l border-gray-100 pl-10 ml-4 min-w-[160px]">
-          <p className="text-[10px] font-black text-sbDark/20 uppercase tracking-[0.2em]">Max: ₹{maxPrice}</p>
+          <p className="text-[10px] font-black text-sbDark/20 uppercase tracking-[0.2em]">
+            Max: ₹{maxPrice}
+          </p>
           <input
             type="range"
             min="100"
@@ -173,63 +196,116 @@ const Menu = () => {
       {/* Catalog */}
       <main className="p-8 md:p-16 lg:p-24 max-w-[1536px] mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-16">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="group relative bg-white rounded-[3.5rem] p-8 hover:shadow-4xl transition-all duration-500 border border-gray-50 flex flex-col">
+          {filteredItems.map((item) => {
+            const quantity = getItemQuantity(item);
 
-              {/* Veg Indicator */}
-              <div className="absolute top-8 left-8 flex items-center justify-center w-6 h-6 border-2 border-gray-100 rounded-lg bg-white p-1 shadow-sm">
-                <div className={`w-full h-full rounded-full ${item.isVeg ? 'bg-green-600' : 'bg-red-600'}`}></div>
-              </div>
-
-              {/* Product Visual */}
-              <div className="w-full aspect-square rounded-[3rem] bg-sbCream/50 flex items-center justify-center text-8xl md:text-9xl mb-10 shadow-inner group-hover:scale-105 transition-all duration-500 relative overflow-hidden">
-                <img src={item.image} alt={item.name} className="relative z-10 drop-shadow-2xl" />
-                {item.popular && (
-                  <div className="absolute top-4 right-4 bg-sbGold text-white text-[9px] font-black px-4 py-1.5 rounded-xl uppercase tracking-widest shadow-lg">Popular</div>
-                )}
-                {/* Decorative background circle */}
-                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-sbGold/10 to-transparent"></div>
-              </div>
-
-              <div className="flex flex-col flex-1">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex items-center gap-1 bg-sbGold/10 px-3 py-1 rounded-lg text-sbGold">
-                    <Star size={14} fill="currentColor" />
-                    <span className="text-xs font-black">{item.rating}</span>
-                  </div>
-                  <span className="text-[10px] text-sbDark/30 font-black uppercase tracking-widest">{item.calories}</span>
+            return (
+              <div
+                key={item._id}
+                className="group relative bg-white rounded-[3.5rem] p-8 hover:shadow-4xl transition-all duration-500 border border-gray-50 flex flex-col"
+              >
+                {/* Veg Indicator */}
+                <div className="absolute top-8 left-8 flex items-center justify-center w-6 h-6 border-2 border-gray-100 rounded-lg bg-white p-1 shadow-sm">
+                  <div
+                    className={`w-full h-full rounded-full ${
+                      item.isVeg ? "bg-green-600" : "bg-red-600"
+                    }`}
+                  ></div>
                 </div>
 
-                <h3 className="font-black text-2xl md:text-3xl text-sbDark mb-3 group-hover:text-sbGreen transition-colors line-clamp-1">
-                  {item.name}
-                </h3>
-                <p className="text-sbDark/40 text-sm mb-10 line-clamp-2 leading-relaxed font-medium italic">
-                  "{item.description}"
-                </p>
+                {/* Product Visual */}
+                <div className="w-full aspect-square rounded-[3rem] bg-sbCream/50 flex items-center justify-center text-8xl md:text-9xl mb-10 shadow-inner group-hover:scale-105 transition-all duration-500 relative overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="relative z-10 drop-shadow-2xl"
+                  />
+                  {item.popular && (
+                    <div className="absolute top-4 right-4 bg-sbGold text-white text-[9px] font-black px-4 py-1.5 rounded-xl uppercase tracking-widest shadow-lg">
+                      Popular
+                    </div>
+                  )}
+                  {/* Decorative background circle */}
+                  <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-sbGold/10 to-transparent"></div>
+                </div>
 
-                <div className="mt-auto pt-8 border-t border-sbCream flex items-center justify-between w-full">
-                  <div>
-                    <p className="text-[10px] font-black text-sbDark/20 uppercase tracking-widest mb-1">Price</p>
-                    <p className="text-3xl font-black text-sbDark tracking-tighter">₹{item.price}</p>
+                <div className="flex flex-col flex-1">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center gap-1 bg-sbGold/10 px-3 py-1 rounded-lg text-sbGold">
+                      <Star size={14} fill="currentColor" />
+                      <span className="text-xs font-black">{item.rating}</span>
+                    </div>
+                    <span className="text-[10px] text-sbDark/30 font-black uppercase tracking-widest">
+                      {item.calories}
+                    </span>
                   </div>
-                  <button
-                    onClick={() => handleAddToCart(item)}
-                    className="bg-sbGreen text-white p-4 rounded-2xl shadow-xl hover:bg-sbDark transition-all active:scale-90"
-                  >
-                    <ArrowRight size={20} />
-                  </button>
+
+                  <h3 className="font-black text-2xl md:text-3xl text-sbDark mb-3 group-hover:text-sbGreen transition-colors line-clamp-1">
+                    {item.name}
+                  </h3>
+                  <p className="text-sbDark/40 text-sm mb-10 line-clamp-2 leading-relaxed font-medium italic">
+                    "{item.description}"
+                  </p>
+
+                  <div className="mt-auto pt-8 border-t border-sbCream flex items-center justify-between w-full">
+                    <div>
+                      <p className="text-[10px] font-black text-sbDark/20 uppercase tracking-widest mb-1">
+                        Price
+                      </p>
+                      <p className="text-3xl font-black text-sbDark tracking-tighter">
+                        ₹{item.price}
+                      </p>
+                    </div>
+
+                    {quantity > 0 ? (
+                      <div className="flex items-center gap-3 bg-sbGreen text-white rounded-2xl shadow-xl px-2 py-2">
+                        <button
+                          onClick={() => handleDecrement(item)}
+                          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white/20 active:scale-90 transition-all"
+                        >
+                          <Minus size={16} />
+                        </button>
+
+                        <span className="font-black text-sm w-4 text-center">
+                          {quantity}
+                        </span>
+
+                        <button
+                          onClick={() => handleIncrement(item)}
+                          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white/20 active:scale-90 transition-all"
+                        >
+                          <Plus size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleAddToCart(item)}
+                        className="bg-sbGreen text-white p-4 rounded-2xl shadow-xl hover:bg-sbDark transition-all active:scale-90"
+                      >
+                        <Plus size={20} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {filteredItems.length === 0 && (
           <div className="py-48 text-center flex flex-col items-center">
-            <div className="w-32 h-32 bg-sbCream rounded-[2rem] flex items-center justify-center text-6xl mb-10 opacity-50 shadow-inner">☕</div>
-            <h2 className="text-3xl font-black text-sbDark/20 uppercase tracking-[0.3em]">No Match Found</h2>
+            <div className="w-32 h-32 bg-sbCream rounded-[2rem] flex items-center justify-center text-6xl mb-10 opacity-50 shadow-inner">
+              ☕
+            </div>
+            <h2 className="text-3xl font-black text-sbDark/20 uppercase tracking-[0.3em]">
+              No Match Found
+            </h2>
             <button
-              onClick={() => { setActiveCategory('all'); setSearchQuery(''); setMaxPrice(500); }}
+              onClick={() => {
+                setActiveCategory("all");
+                setSearchQuery("");
+                setMaxPrice(500);
+              }}
               className="mt-12 sb-btn-outline-green"
             >
               Reset Filters

@@ -163,7 +163,7 @@ export default function PaymentModal({
 
           <div className="flex gap-3">
 
-            {["cash", "upi", "card"].map((method) => (
+            {["cash", "upi", "card", "swiggy", "zomato"].map((method) => (
 
               <button
                 key={method}

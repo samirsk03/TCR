@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createOrderRequest ,acceptOrder , getPendingOrders} from "../controllers/orderRequestController.js";
+import { createOrderRequest, acceptOrder, getPendingOrders, cancelOrder, getCancelledOrders } from "../controllers/orderRequestController.js";
 
 import {
   protect, authorize
@@ -26,6 +26,15 @@ router.patch(
   protect,
   authorize("staff", "admin"),
   acceptOrder
+);
+
+router.patch("/:id/cancel", protect, cancelOrder);
+
+router.get(
+  "/cancelled",
+  protect,
+  authorize("staff", "admin"),
+  getCancelledOrders
 );
 
 export default router;
