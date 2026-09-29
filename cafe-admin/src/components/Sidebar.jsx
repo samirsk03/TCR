@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -29,7 +29,8 @@ const menus = [
 ];
 
 export default function Sidebar() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const userRole = user?.role;
   const visibleMenus = menus.filter((menu) => menu.roles.includes(userRole));
 
@@ -67,9 +68,16 @@ export default function Sidebar() {
 
       {/* Logout */}
       <div className="p-4">
-        <button className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 transition-all">
+        <button
+          onClick={()=> {
+            logout();
+            navigate("/");
+          }}
+          
+          className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/40 transition-all"
+        >
           <LogOut size={20} />
-          Logout
+          Logout 
         </button>
       </div>
     </aside>
