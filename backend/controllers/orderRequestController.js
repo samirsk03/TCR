@@ -2,11 +2,19 @@ import OrderRequest from "../models/OrderRequest.js";
 import Session from "../models/Session.js";
 import { APP_CONFIG } from "../config/appConfig.js";
 
+
 export const createOrderRequest = async (req, res) => {
   try {
-    const { items } = req.body;
+    const { items, tableNumber } = req.body;
 
-    if (!items || items.length === 0) {
+    if (!tableNumber || !String(tableNumber).trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide your table number",
+      });
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
         message: "No items provided",
@@ -15,6 +23,7 @@ export const createOrderRequest = async (req, res) => {
 
     const orderRequest = await OrderRequest.create({
       customerId: req.user._id,
+      tableNumber: String(tableNumber).trim(),
       items,
     });
 
@@ -29,6 +38,7 @@ export const createOrderRequest = async (req, res) => {
     });
   }
 };
+
 
 
 export const getPendingOrders = async (req, res) => {
@@ -138,8 +148,6 @@ export const getCancelledOrders = async (req, res) => {
   }
 };
 
-
-
 export const acceptOrder = async (req, res) => {
   try {
     const { id } = req.params;
@@ -172,6 +180,7 @@ export const acceptOrder = async (req, res) => {
     if (!session) {
       session = await Session.create({
         customerId: order.customerId,
+        tableNumber: order.tableNumber,
         openedBy: req.user._id,
         items: [],
         acceptedOrders: [],
@@ -195,7 +204,7 @@ export const acceptOrder = async (req, res) => {
     // Calculate reward points from subtotal
     // rewards will be calculated during payment
     session.totalRewardPoints = 0;
-    
+
     // Calculate GST
     session.gst =
       (session.subtotal * session.gstPercentage) / 100;

@@ -121,14 +121,18 @@ export default function SessionCard({
 
           <span
             className={`text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest ${session.status === "active"
-                ? "bg-green-100 text-green-700"
-                : "bg-orange-100 text-orange-700"
+              ? "bg-green-100 text-green-700"
+              : "bg-orange-100 text-orange-700"
               }`}
           >
             {session.status === "active"
               ? "ACTIVE"
               : "BILL READY"}
           </span>
+
+          <div className="mt-2 inline-flex items-center rounded-lg bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-800">
+            Table: {session.tableNumber || "Not assigned"}
+          </div>
 
           <Clock size={18} className="text-gray-400" />
 
@@ -174,15 +178,15 @@ export default function SessionCard({
 
           </div>
 
-          <div>
+          <div className="flex flex-col items-center">
 
             <IndianRupee
               size={18}
               className="text-gray-400 mb-1"
             />
 
-            <p className="text-lg font-black">
-              ₹{session.totalAmount}
+            <p className="text-lg font-black ">
+              ₹{Number(session.totalAmount).toFixed(0)}
             </p>
 
             <p className="text-[10px] uppercase text-gray-400 font-bold">
@@ -200,14 +204,14 @@ export default function SessionCard({
 
             <p className="text-lg font-black text-green-600">
               {
-            settings
-              ? Math.floor(
-                (session.totalAmount *
-                  settings.rewardPercentage) /
-                100
-              )
-              : 0
-          }
+                settings
+                  ? Math.floor(
+                    (session.totalAmount *
+                      settings.rewardPercentage) /
+                    100
+                  )
+                  : 0
+              }
             </p>
 
             <p className="text-[10px] uppercase text-gray-400 font-bold">
@@ -392,7 +396,7 @@ export default function SessionCard({
                 <button
                   onClick={handleRequestBill}
                   disabled={loading}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white rounded-xl py-4 font-bold"
+                  className="w-full bg-[#6F4E37] hover:bg-[#6F4E37] text-white rounded-xl py-4 font-bold"
                 >
                   {loading
                     ? "Generating..."
@@ -404,7 +408,7 @@ export default function SessionCard({
                 <button
                   onClick={openPayment}
                   disabled={loading}
-                  className="w-full bg-green-700 hover:bg-green-800 text-white rounded-xl py-4 font-bold"
+                  className="w-full bg-[#6F4E37] hover:bg-[#6F4E37] text-white rounded-xl py-4 font-bold"
                 >
                   Take Payment
                 </button>

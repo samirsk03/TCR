@@ -730,31 +730,53 @@ export const getMyTransactions = async (req, res) => {
   }
 };
 
-// user see his current order if he has any active session
+
 export const getMyCurrentOrder = async (req, res) => {
   try {
     const session = await Session.findOne({
       customerId: req.user._id,
-      status: "active",
+      status: { $in: ["active", "bill_requested"] },
     })
       .sort({ createdAt: -1 })
       .populate("items.menuId");
 
+    return res.status(200).json({
+      success: true,
+      data: session || null,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+export const requestMyBill = async (req, res) => {
+  try {
+    const session = await Session.findOne({
+      customerId: req.user._id,
+      status: "active",
+    }).sort({ createdAt: -1 });
+
     if (!session) {
-      return res.status(200).json({
-        success: true,
-        data: null,
+      return res.status(404).json({
+        success: false,
         message: "No active order found",
       });
     }
 
-    res.status(200).json({
+    session.status = "bill_requested";
+    await session.save();
+
+    return res.status(200).json({
       success: true,
+      message: "Bill requested successfully",
       data: session,
     });
-
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

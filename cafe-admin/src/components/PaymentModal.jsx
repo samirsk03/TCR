@@ -193,6 +193,17 @@ export default function PaymentModal({
               </span>
             </div>
 
+            {/* CUSTOMER WILL EARN */}
+            <div className="flex justify-between">
+              <span>
+                Customer will earn
+              </span>
+
+              <span className="text-green-700 font-bold">
+                {customerWillEarn} Points
+              </span>
+            </div>
+
             <hr />
 
             {/* STAFF DISCOUNT */}
@@ -250,20 +261,11 @@ export default function PaymentModal({
               </span>
 
               <span className="text-green-700">
-                ₹{finalPayable}
+                ₹{Number(finalPayable || 0).toFixed(2)}
               </span>
             </div>
 
-            {/* CUSTOMER WILL EARN */}
-            <div className="flex justify-between">
-              <span>
-                Customer will earn
-              </span>
-
-              <span className="text-green-700 font-bold">
-                {customerWillEarn} Points
-              </span>
-            </div>
+            
 
             <hr />
 

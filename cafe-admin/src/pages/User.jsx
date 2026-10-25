@@ -9,7 +9,10 @@ import {
   Star,
   UserCheck,
   AlertCircle,
+  Download,
 } from "lucide-react";
+
+import * as XLSX from "xlsx";
 
 import api from "../services/api";
 
@@ -34,18 +37,62 @@ const Users = () => {
 
       setError(
         err.response?.data?.message ||
-          "Unable to load users."
+        "Unable to load users."
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const exportUsersToExcel = () => {
+    if (filteredUsers.length === 0) {
+      alert("No users match the current filters.");
+      return;
+    }
+
+    const excelData = filteredUsers.map((user, index) => ({
+      "Sr. No.": index + 1,
+      "Name": user.name || "",
+      "Phone": user.phone || "",
+      "Employee ID": user.employeeId || "",
+      "Role": user.role || "",
+      "Reward Points": user.rewardPoints || 0,
+      "Total Visits": user.visitCount || 0,
+      "Status": user.isActive === false ? "Inactive" : "Active",
+      "Joined Date": user.createdAt
+        ? new Date(user.createdAt).toLocaleDateString("en-IN")
+        : "",
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    worksheet["!cols"] = [
+      { wch: 10 },
+      { wch: 25 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 15 },
+      { wch: 16 },
+      { wch: 14 },
+      { wch: 14 },
+      { wch: 16 },
+    ];
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+
+    XLSX.writeFile(
+      workbook,
+      `TCR_Users_${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
+  };
+
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  
+
 
   // ----------------------------------------
   // STATS
@@ -158,22 +205,32 @@ const Users = () => {
 
         </div>
 
-        <button
-          onClick={fetchUsers}
-          disabled={loading}
-          className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gray-900 text-white font-bold hover:bg-gray-800 transition disabled:opacity-50"
-        >
 
-          <RefreshCw
-            size={18}
-            className={
-              loading ? "animate-spin" : ""
-            }
-          />
 
-          Refresh
 
-        </button>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button
+            onClick={exportUsersToExcel}
+            disabled={loading || users.length === 0}
+            className="flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 font-bold text-white transition hover:bg-green-700 disabled:opacity-50"
+          >
+            <Download size={18} />
+            Export to Excel
+          </button>
+
+          <button
+            onClick={fetchUsers}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 font-bold text-white transition hover:bg-gray-800 disabled:opacity-50"
+          >
+            <RefreshCw
+              size={18}
+              className={loading ? "animate-spin" : ""}
+            />
+            Refresh
+          </button>
+        </div>
+
 
       </div>
 
@@ -512,11 +569,10 @@ const Users = () => {
                     <td className="px-6 py-5">
 
                       <span
-                        className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase ${
-                          user.isActive === false
-                            ? "bg-red-100 text-red-700"
-                            : "bg-green-100 text-green-700"
-                        }`}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase ${user.isActive === false
+                          ? "bg-red-100 text-red-700"
+                          : "bg-green-100 text-green-700"
+                          }`}
                       >
                         {user.isActive === false
                           ? "Inactive"
@@ -535,8 +591,8 @@ const Users = () => {
 
                         {user.createdAt
                           ? new Date(
-                              user.createdAt
-                            ).toLocaleDateString()
+                            user.createdAt
+                          ).toLocaleDateString()
                           : "-"}
 
                       </div>

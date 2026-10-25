@@ -19,7 +19,8 @@ const Wallet = () => {
 
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [search, setSearch] = useState("");
   const [paymentFilter, setPaymentFilter] = useState("all");
   const [sortBy, setSortBy] = useState("latest");
@@ -28,7 +29,6 @@ const Wallet = () => {
     try {
       const res = await api.get("/session/my-transactions");
       setTransactions(res.data.data || []);
-      console.log("Fetched transactions:", res.data.data);
     } catch (err) {
       console.log(err);
     } finally {
@@ -71,30 +71,56 @@ const Wallet = () => {
 
       lastVisit:
         transactions.length > 0
-          ? transactions[0].paidAt
+          ? transactions.reduce((latest, t) =>
+            new Date(t.paidAt) > new Date(latest.paidAt) ? t : latest
+          ).paidAt
           : null,
     };
   }, [transactions, user]);
 
+
+
+
   const filteredTransactions = useMemo(() => {
     let data = [...transactions];
 
+    // Payment method filter
     if (paymentFilter !== "all") {
       data = data.filter(
         (t) => t.paymentMethod === paymentFilter
       );
     }
 
+    // Start date filter
+    if (startDate) {
+      const start = new Date(`${startDate}T00:00:00`);
+
+      data = data.filter(
+        (t) => new Date(t.paidAt) >= start
+      );
+    }
+
+    // End date filter — include the entire day
+    if (endDate) {
+      const end = new Date(`${endDate}T23:59:59.999`);
+
+      data = data.filter(
+        (t) => new Date(t.paidAt) <= end
+      );
+    }
+
+    // Search items
     if (search.trim()) {
       data = data.filter((bill) =>
-        bill.items.some((i) =>
-          i.itemName
+        bill.items?.some((i) =>
+          (i.itemName || "")
             .toLowerCase()
             .includes(search.toLowerCase())
         )
       );
     }
 
+    // Sort transactions
     data.sort((a, b) =>
       sortBy === "latest"
         ? new Date(b.paidAt) - new Date(a.paidAt)
@@ -105,9 +131,12 @@ const Wallet = () => {
   }, [
     transactions,
     paymentFilter,
+    startDate,
+    endDate,
     search,
     sortBy,
   ]);
+
 
   return (
     <div className="animate-fade-in min-h-screen pb-24">
@@ -194,7 +223,7 @@ const Wallet = () => {
             </p>
 
             <h2 className="text-3xl font-black mt-2">
-              ₹{stats.spend}
+              ₹{Number(stats.spend || 0).toFixed(2)}
             </h2>
 
           </div>
@@ -239,8 +268,8 @@ const Wallet = () => {
 
               {stats.lastVisit
                 ? new Date(
-                    stats.lastVisit
-                  ).toLocaleDateString()
+                  stats.lastVisit
+                ).toLocaleDateString()
                 : "-"}
 
             </h2>
@@ -271,6 +300,50 @@ const Wallet = () => {
             />
 
           </div>
+
+
+          {/* Start Date */}
+          <div className="flex flex-col gap-1 min-w-[140px]">
+            <label className="text-xs font-bold text-gray-500">
+              Start Date
+            </label>
+            <input
+              type="date"
+              value={startDate}
+              max={endDate || undefined}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-3 py-3 rounded-xl border border-gray-200 outline-none focus:border-sbGreen"
+            />
+          </div>
+
+          {/* End Date */}
+          <div className="flex flex-col gap-1 min-w-[140px]">
+            <label className="text-xs font-bold text-gray-500">
+              End Date
+            </label>
+            <input
+              type="date"
+              value={endDate}
+              min={startDate || undefined}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-3 rounded-xl border border-gray-200 outline-none focus:border-sbGreen"
+            />
+          </div>
+
+          {/* Clear Date Filters */}
+          {(startDate || endDate) && (
+            <button
+              type="button"
+              onClick={() => {
+                setStartDate("");
+                setEndDate("");
+              }}
+              className="px-4 py-3 rounded-xl text-sm font-bold text-red-500 bg-red-50 hover:bg-red-100 transition-colors"
+            >
+              Clear Dates
+            </button>
+          )}
+
 
           <select
             value={paymentFilter}
@@ -308,315 +381,315 @@ const Wallet = () => {
 
       {/* Transaction History */}
 
-<section className="py-12 px-6">
+      <section className="py-12 px-6">
 
-  <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto">
 
-    <div className="flex items-center gap-3 mb-8">
+          <div className="flex items-center gap-3 mb-8">
 
-      <History className="text-sbGreen" size={28} />
+            <History className="text-sbGreen" size={28} />
 
-      <div>
+            <div>
 
-        <h2 className="text-3xl font-black">
-          Transaction History
-        </h2>
+              <h2 className="text-3xl font-black">
+                Transaction History
+              </h2>
 
-        <p className="text-gray-500">
-          Every bill you've paid at The Chocolate Room
-        </p>
+              <p className="text-gray-500">
+                Every bill you've paid at The Chocolate Room
+              </p>
 
-      </div>
+            </div>
 
-    </div>
+          </div>
 
-    {loading ? (
+          {loading ? (
 
-      <div className="grid gap-6">
+            <div className="grid gap-6">
 
-        {[1,2,3].map((i)=>(
-          <div
-            key={i}
-            className="h-44 rounded-3xl bg-gray-200 animate-pulse"
-          />
-        ))}
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-44 rounded-3xl bg-gray-200 animate-pulse"
+                />
+              ))}
 
-      </div>
+            </div>
 
-    ) : filteredTransactions.length===0 ? (
+          ) : filteredTransactions.length === 0 ? (
 
-      <div className="bg-white rounded-3xl p-20 text-center shadow">
+            <div className="bg-white rounded-3xl p-20 text-center shadow">
 
-        <History
-          size={60}
-          className="mx-auto text-gray-300"
-        />
+              <History
+                size={60}
+                className="mx-auto text-gray-300"
+              />
 
-        <h3 className="mt-5 text-2xl font-black">
-          No Transactions Found
-        </h3>
+              <h3 className="mt-5 text-2xl font-black">
+                No Transactions Found
+              </h3>
 
-        <p className="text-gray-500 mt-2">
-          Looks like you haven't placed an order yet.
-        </p>
+              <p className="text-gray-500 mt-2">
+                Looks like you haven't placed an order yet.
+              </p>
 
-      </div>
+            </div>
 
-    ) : (
+          ) : (
 
-      <div className="space-y-6">
+            <div className="space-y-6">
 
-        {filteredTransactions.map((bill)=>(
+              {filteredTransactions.map((bill) => (
 
-          <details
-            key={bill._id}
-            className="group bg-white rounded-3xl shadow hover:shadow-xl transition-all duration-300 overflow-hidden"
-          >
+                <details
+                  key={bill._id}
+                  className="group bg-white rounded-3xl shadow hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
 
-            <summary className="cursor-pointer list-none p-8 flex flex-col lg:flex-row justify-between gap-6">
-
-              <div>
-
-                <div className="flex items-center gap-3">
-
-                  <span className="bg-sbLight px-3 py-1 rounded-lg text-xs font-black tracking-widest">
-
-                    BILL #{bill._id.slice(-6).toUpperCase()}
-
-                  </span>
-
-                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-black uppercase">
-
-                    {bill.status}
-
-                  </span>
-
-                </div>
-
-                <h3 className="mt-4 text-2xl font-black">
-
-                  {bill.items
-                    .map(i=>i.itemName)
-                    .join(", ")}
-
-                </h3>
-
-                <p className="text-gray-500 mt-2">
-
-                  {new Date(
-                    bill.paidAt
-                  ).toLocaleString()}
-
-                </p>
-
-              </div>
-
-              <div className="text-right">
-
-                <p className="text-gray-400 text-sm">
-                  Total Paid
-                </p>
-
-                <h2 className="text-4xl font-black">
-
-                  ₹{bill.totalAmount}
-
-                </h2>
-
-                <p className="mt-3 text-green-600 font-bold">
-
-                  +{bill.earnedPoints} Reward Points
-
-                </p>
-
-              </div>
-
-            </summary>
-
-            {/* Receipt */}
-
-            <div className="border-t bg-gray-50 px-8 py-8">
-
-              <h4 className="font-black text-xl mb-6">
-
-                Receipt Details
-
-              </h4>
-
-              <div className="space-y-3">
-
-                {bill.items.map(item=>(
-
-                  <div
-                    key={item._id}
-                    className="flex justify-between"
-                  >
+                  <summary className="cursor-pointer list-none p-8 flex flex-col lg:flex-row justify-between gap-6">
 
                     <div>
 
-                      <p className="font-bold">
+                      <div className="flex items-center gap-3">
 
-                        {item.itemName}
+                        <span className="bg-sbLight px-3 py-1 rounded-lg text-xs font-black tracking-widest">
 
-                        {item.variantName &&
-                          ` (${item.variantName})`}
+                          BILL #{bill._id.slice(-6).toUpperCase()}
 
-                      </p>
+                        </span>
 
-                      <p className="text-sm text-gray-500">
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-black uppercase">
 
-                        Qty : {item.quantity}
+                          {bill.status}
+
+                        </span>
+
+                      </div>
+
+                      <h3 className="mt-4 text-2xl font-black">
+
+                        {bill.items
+                          .map(i => i.itemName)
+                          .join(", ")}
+
+                      </h3>
+
+                      <p className="text-gray-500 mt-2">
+
+                        {new Date(
+                          bill.paidAt
+                        ).toLocaleString()}
 
                       </p>
 
                     </div>
 
-                    <p className="font-bold">
+                    <div className="text-right">
 
-                      ₹{item.price}
+                      <p className="text-gray-400 text-sm">
+                        Total Paid
+                      </p>
 
-                    </p>
+                      <h2 className="text-4xl font-black">
+
+                        ₹{Number(bill.totalAmount || 0).toFixed(2)}
+
+                      </h2>
+
+                      <p className="mt-3 text-green-600 font-bold">
+
+                        +{bill.earnedPoints} Reward Points
+
+                      </p>
+
+                    </div>
+
+                  </summary>
+
+                  {/* Receipt */}
+
+                  <div className="border-t bg-gray-50 px-8 py-8">
+
+                    <h4 className="font-black text-xl mb-6">
+
+                      Receipt Details
+
+                    </h4>
+
+                    <div className="space-y-3">
+
+                      {bill.items.map(item => (
+
+                        <div
+                          key={item._id}
+                          className="flex justify-between"
+                        >
+
+                          <div>
+
+                            <p className="font-bold">
+
+                              {item.itemName}
+
+                              {item.variantName &&
+                                ` (${item.variantName})`}
+
+                            </p>
+
+                            <p className="text-sm text-gray-500">
+
+                              Qty : {item.quantity}
+
+                            </p>
+
+                          </div>
+
+                          <p className="font-bold">
+
+                            ₹{item.price}
+
+                          </p>
+
+                        </div>
+
+                      ))}
+
+                    </div>
+
+                    <div className="border-t mt-8 pt-6 space-y-3">
+
+                      <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>₹{bill.subtotal}</span>
+                      </div>
+
+                      <div className="flex justify-between">
+                        <span>GST ({bill.gstPercentage}%)</span>
+                        <span>₹{bill.gst}</span>
+                      </div>
+
+                      <div className="flex justify-between">
+
+                        <span>Manual Discount</span>
+
+                        <span className="text-red-500">
+
+                          -₹{bill.manualDiscount}
+
+                        </span>
+
+                      </div>
+
+                      {bill.rewardDiscount > 0 && (
+
+                        <div className="flex justify-between">
+
+                          <span>Reward Discount</span>
+
+                          <span className="text-red-500">
+
+                            -₹{bill.rewardDiscount}
+
+                          </span>
+
+                        </div>
+
+                      )}
+
+                      {bill.redeemedPoints > 0 && (
+
+                        <div className="flex justify-between">
+
+                          <span>Redeemed Points</span>
+
+                          <span className="text-orange-500">
+
+                            {bill.redeemedPoints}
+
+                          </span>
+
+                        </div>
+
+                      )}
+
+                      <div className="flex justify-between">
+
+                        <span>Reward Earned</span>
+
+                        <span className="text-green-600">
+
+                          +{bill.earnedPoints}
+
+                        </span>
+
+                      </div>
+
+                      <div className="flex justify-between">
+
+                        <span>Payment Method</span>
+
+                        <span className="uppercase">
+
+                          {bill.paymentMethod}
+
+                        </span>
+
+                      </div>
+
+                      {bill.discountReason && (
+
+                        <div className="rounded-xl bg-yellow-50 p-4 mt-4">
+
+                          <p className="font-bold text-sm">
+
+                            Discount Reason
+
+                          </p>
+
+                          <p className="text-gray-600 mt-1">
+
+                            {bill.discountReason}
+
+                          </p>
+
+                        </div>
+
+                      )}
+
+                      <div className="border-t pt-5 mt-5 flex justify-between">
+
+                        <span className="text-xl font-black">
+
+                          Total Paid
+
+                        </span>
+
+                        <span className="text-3xl font-black text-sbGreen">
+
+                          ₹{bill.totalAmount}
+
+                        </span>
+
+                      </div>
+
+                    </div>
 
                   </div>
 
-                ))}
+                </details>
 
-              </div>
-
-              <div className="border-t mt-8 pt-6 space-y-3">
-
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>₹{bill.subtotal}</span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span>GST ({bill.gstPercentage}%)</span>
-                  <span>₹{bill.gst}</span>
-                </div>
-
-                <div className="flex justify-between">
-
-                  <span>Manual Discount</span>
-
-                  <span className="text-red-500">
-
-                    -₹{bill.manualDiscount}
-
-                  </span>
-
-                </div>
-
-                {bill.rewardDiscount>0 &&(
-
-                  <div className="flex justify-between">
-
-                    <span>Reward Discount</span>
-
-                    <span className="text-red-500">
-
-                      -₹{bill.rewardDiscount}
-
-                    </span>
-
-                  </div>
-
-                )}
-
-                {bill.redeemedPoints>0 &&(
-
-                  <div className="flex justify-between">
-
-                    <span>Redeemed Points</span>
-
-                    <span className="text-orange-500">
-
-                      {bill.redeemedPoints}
-
-                    </span>
-
-                  </div>
-
-                )}
-
-                <div className="flex justify-between">
-
-                  <span>Reward Earned</span>
-
-                  <span className="text-green-600">
-
-                    +{bill.earnedPoints}
-
-                  </span>
-
-                </div>
-
-                <div className="flex justify-between">
-
-                  <span>Payment Method</span>
-
-                  <span className="uppercase">
-
-                    {bill.paymentMethod}
-
-                  </span>
-
-                </div>
-
-                {bill.discountReason &&(
-
-                  <div className="rounded-xl bg-yellow-50 p-4 mt-4">
-
-                    <p className="font-bold text-sm">
-
-                      Discount Reason
-
-                    </p>
-
-                    <p className="text-gray-600 mt-1">
-
-                      {bill.discountReason}
-
-                    </p>
-
-                  </div>
-
-                )}
-
-                <div className="border-t pt-5 mt-5 flex justify-between">
-
-                  <span className="text-xl font-black">
-
-                    Total Paid
-
-                  </span>
-
-                  <span className="text-3xl font-black text-sbGreen">
-
-                    ₹{bill.totalAmount}
-
-                  </span>
-
-                </div>
-
-              </div>
+              ))}
 
             </div>
 
-          </details>
+          )}
 
-        ))}
+        </div>
 
-      </div>
+      </section>
 
-    )}
-
-  </div>
-
-</section>
-
-</div>
-);
+    </div>
+  );
 };
 
 export default Wallet;

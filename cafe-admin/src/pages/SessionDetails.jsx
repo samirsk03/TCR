@@ -227,7 +227,7 @@ export default function SessionDetails() {
                 <hr className="my-3" />
 
                 <div className="flex justify-between text-2xl font-bold">
-                    <span>Total</span>
+                    <span>Total </span>
                     <span>₹{session.totalAmount}</span>
                 </div>
 
@@ -240,7 +240,7 @@ export default function SessionDetails() {
                     <button
                         onClick={requestBill}
                         disabled={processing}
-                        className="bg-orange-600 text-white px-6 py-3 rounded"
+                        className="bg-[#6F4E37] text-white px-6 py-3 rounded"
                     >
                         Generate Bill
                     </button>
@@ -251,7 +251,7 @@ export default function SessionDetails() {
                     <button
                         onClick={() => setShowBill(true)}
                         disabled={processing}
-                        className="bg-green-600 text-white px-6 py-3 rounded"
+                        className="bg-[#6F4E37] text-white px-6 py-3 rounded"
                     >
                         Take Payment
                     </button>

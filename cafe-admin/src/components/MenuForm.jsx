@@ -208,10 +208,7 @@ export default function MenuForm({
                                     Non Veg
                                 </option>
 
-                                <option value="both">
-                                    Both
-                                </option>
-
+                               
                             </select>
 
                         </div>
@@ -249,118 +246,9 @@ export default function MenuForm({
 
                     </div>
 
-                    {/* ---------- VARIANTS SECTION COMES HERE ---------- */}
+                   
 
-                    {/* Variants */}
-
-                    <div className="border rounded-lg p-4">
-
-                        <div className="flex justify-between items-center mb-4">
-
-                            <h3 className="text-lg font-semibold">
-                                Variants
-                            </h3>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setForm((prev) => ({
-                                        ...prev,
-                                        variants: [
-                                            ...prev.variants,
-                                            {
-                                                name: "",
-                                                price: "",
-                                                isAvailable: true,
-                                            },
-                                        ],
-                                    }))
-                                }
-                                className="bg-green-600 text-white px-3 py-2 rounded"
-                            >
-                                + Add Variant
-                            </button>
-
-                        </div>
-
-                        {form.variants.length === 0 && (
-                            <p className="text-gray-500">
-                                No variants added.
-                                Product price will be used.
-                            </p>
-                        )}
-
-                        {form.variants.map((variant, index) => (
-
-                            <div
-                                key={index}
-                                className="grid grid-cols-12 gap-3 mb-3"
-                            >
-
-                                <input
-                                    className="col-span-5 border rounded p-2"
-                                    placeholder="Variant Name"
-                                    value={variant.name}
-                                    onChange={(e) => {
-
-                                        const updated = [...form.variants];
-
-                                        updated[index].name =
-                                            e.target.value;
-
-                                        setForm({
-                                            ...form,
-                                            variants: updated,
-                                        });
-
-                                    }}
-                                />
-
-                                <input
-                                    type="number"
-                                    className="col-span-4 border rounded p-2"
-                                    placeholder="Price"
-                                    value={variant.price}
-                                    onChange={(e) => {
-
-                                        const updated = [...form.variants];
-
-                                        updated[index].price =
-                                            Number(e.target.value);
-
-                                        setForm({
-                                            ...form,
-                                            variants: updated,
-                                        });
-
-                                    }}
-                                />
-
-                                <button
-                                    type="button"
-                                    className="col-span-3 bg-red-600 text-white rounded"
-                                    onClick={() => {
-
-                                        const updated =
-                                            form.variants.filter(
-                                                (_, i) => i !== index
-                                            );
-
-                                        setForm({
-                                            ...form,
-                                            variants: updated,
-                                        });
-
-                                    }}
-                                >
-                                    Remove
-                                </button>
-
-                            </div>
-
-                        ))}
-
-                    </div>
+                   
 
                     <div className="flex justify-end gap-3 pt-5 border-t">
 

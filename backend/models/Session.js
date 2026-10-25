@@ -104,6 +104,12 @@
     default: 0,
   },
 
+  tableNumber: {
+  type: String,
+  required: true,
+  trim: true,
+},
+
   openedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

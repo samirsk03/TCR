@@ -86,7 +86,7 @@ const Signup = () => {
         </h1>
 
         <p className="text-sbGreen font-bold mb-10 text-center tracking-widest uppercase text-sm">
-          THE CHOCOLATE ROOM® REWARDS
+          THE CHOCOLATE ROOM Salunke Vihar REWARDS
         </p>
 
         <form
@@ -146,14 +146,17 @@ const Signup = () => {
               }
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="  gap-6">
 
+               <h2 className="text-xl font-bold text-gray-800 border-b pb-2">
+              Date Of Birth
+            </h2> <br />
               <input
                 type="Date"
                 maxLength="4"
                 required
                 className="sb-input"
-                placeholder=""
+                placeholder="Date Of Birth"
                 value={formData.dateOfBirth}
                 onChange={(e) =>
                   setFormData({
@@ -228,7 +231,7 @@ const Signup = () => {
 
             <p className="text-xs text-gray-400 leading-relaxed">
               By clicking "Create Account", you agree to
-              The Chocolate Room® Rewards Terms &
+              The Chocolate Room Salunke Vihar Rewards Terms &
               Conditions.
             </p>
 

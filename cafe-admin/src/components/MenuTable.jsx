@@ -39,9 +39,9 @@ export default function MenuTable({
                 Price
               </th>
 
-              <th className="px-4 py-3 text-left">
+              {/* <th className="px-4 py-3 text-left">
                 Variants
-              </th>
+              </th> */}
 
               <th className="px-4 py-3 text-left">
                 Status
@@ -132,11 +132,11 @@ export default function MenuTable({
 
                   {/* Variants */}
 
-                  <td className="px-4 py-3">
+                  {/* <td className="px-4 py-3">
 
                     {item.variants?.length || 0}
 
-                  </td>
+                  </td> */}
 
                   {/* Status */}
 

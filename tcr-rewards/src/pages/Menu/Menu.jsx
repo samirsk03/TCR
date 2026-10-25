@@ -1,7 +1,9 @@
-// src/pages/Menu/Menu.jsx
+
 import { useEffect, useMemo, useState } from "react";
+import { Search, Star, Plus, Minus, ShoppingCart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import api from "../../services/api";
-import { Search, Star, Plus, Minus } from "lucide-react";
 import { useCart } from "../../context/CartContext";
 
 const Menu = () => {
@@ -12,6 +14,13 @@ const Menu = () => {
   const [maxPrice, setMaxPrice] = useState(5000);
 
   const { cart, addToCart, increaseQuantity, decreaseQuantity } = useCart();
+  const navigate = useNavigate();
+
+  // Total quantity of items in the cart
+  const totalCartItems = cart.reduce(
+    (total, item) => total + item.quantity,
+    0
+  );
 
   useEffect(() => {
     fetchMenu();
@@ -20,33 +29,26 @@ const Menu = () => {
   const fetchMenu = async () => {
     try {
       setLoading(true);
-
       const res = await api.get("/menus");
-
       setMenuItems(res.data.data || []);
     } catch (err) {
-      console.log(err);
+      console.error("Unable to fetch menu:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Mirrors handleAddToCart's variant logic — first variant if any,
-  // otherwise no variant — so the quantity badge tracks the exact
-  // same cart line that clicking "+" would add to or create.
   const getVariantName = (item) => {
-    if (item.variants?.length > 0) {
-      return item.variants[0].name;
-    }
-
-    return "";
+    return item.variants?.length > 0 ? item.variants[0].name : "";
   };
 
   const getItemQuantity = (item) => {
     const variantName = getVariantName(item);
 
     const cartLine = cart.find(
-      (c) => c.menuId === item._id && c.variantName === variantName
+      (c) =>
+        c.menuId === item._id &&
+        c.variantName === variantName
     );
 
     return cartLine?.quantity || 0;
@@ -79,30 +81,25 @@ const Menu = () => {
   };
 
   const handleIncrement = (item) => {
-    const variantName = getVariantName(item);
-    increaseQuantity(item._id, variantName);
+    increaseQuantity(item._id, getVariantName(item));
   };
 
   const handleDecrement = (item) => {
-    const variantName = getVariantName(item);
-    decreaseQuantity(item._id, variantName);
+    decreaseQuantity(item._id, getVariantName(item));
   };
 
+  // Categories displayed as text only
   const menuCategories = useMemo(() => {
-    const categories = [
-      {
-        id: "all",
-        label: "All",
-        emoji: "🍽️",
-      },
-    ];
+    const categories = [{ id: "all", label: "All Items" }];
 
     menuItems.forEach((item) => {
-      if (!categories.find((c) => c.id === item.category)) {
+      if (
+        item.category &&
+        !categories.some((category) => category.id === item.category)
+      ) {
         categories.push({
           id: item.category,
           label: item.category,
-          emoji: "☕",
         });
       }
     });
@@ -112,207 +109,297 @@ const Menu = () => {
 
   const filteredItems = menuItems.filter((item) => {
     const matchesCategory =
-      activeCategory === "all" || item.category === activeCategory;
-    const matchesSearch = item.name
+      activeCategory === "all" ||
+      item.category === activeCategory;
+
+    const matchesSearch = (item.name || "")
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    const matchesPrice = item.price <= maxPrice;
+
+    const price = Number(
+      item.variants?.length > 0
+        ? item.variants[0].price
+        : item.price
+    ) || 0;
+
+    const matchesPrice = price <= maxPrice;
+
     return matchesCategory && matchesSearch && matchesPrice;
   });
 
   return (
-    <div className="animate-fade-in min-h-screen bg-transparent pb-24">
-      {/* Header Section */}
-      <header className="bg-sbDark text-sbCream pt-16 pb-32 px-6 md:px-12 text-center relative overflow-hidden">
-        <div className="max-w-4xl mx-auto relative z-10">
-          <h1 className="text-4xl md:text-7xl font-black mb-8 tracking-tighter">
-            Our <span className="text-sbGold text-glow">Collections</span>
+    <div className="relative min-h-screen bg-[#faf8f4] pb-28">
+
+      {/* Header */}
+      <header className="relative overflow-hidden bg-sbDark px-4 pb-12 pt-10 text-sbCream sm:px-6 sm:pb-16 sm:pt-14">
+        <div className="relative z-10 mx-auto max-w-7xl">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-sbGold">
+            The Chocolate Room
+          </p>
+
+          <h1 className="mb-6 text-3xl font-black tracking-tight sm:text-5xl">
+            Our <span className="text-sbGold">Menu</span>
           </h1>
-          <div className="relative max-w-2xl mx-auto group">
+
+          {/* Search */}
+          <div className="group relative max-w-xl">
             <Search
-              className="absolute left-6 top-1/2 -translate-y-1/2 text-sbDark/30 group-focus-within:text-sbGreen transition-colors"
-              size={20}
+              size={19}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-sbDark/40"
             />
+
             <input
               type="text"
-              placeholder="Search for your favorite brew..."
-              className="w-full bg-white text-sbDark rounded-3xl py-6 pl-16 pr-8 focus:outline-none shadow-3xl text-lg font-bold placeholder:text-gray-300"
+              placeholder="Search food and beverages..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-2xl border border-white/10 bg-white py-3.5 pl-11 pr-4 text-sm font-medium text-sbDark outline-none transition focus:ring-2 focus:ring-sbGold sm:py-4"
             />
           </div>
         </div>
-        {/* Artistic background accents */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-sbGreen/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-sbGold/5 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2"></div>
+
+        <div className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-sbGreen/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-10 h-52 w-52 rounded-full bg-sbGold/10 blur-3xl" />
       </header>
 
-      {/* Categories & Filter Bar */}
-      <div className="sticky top-20 md:top-24 bg-white/80 backdrop-blur-xl z-30 shadow-2xl border-b border-gray-100 -mt-16 mx-6 md:mx-12 rounded-[2.5rem] p-6 flex items-center gap-10 overflow-x-auto hide-scrollbar snap-x">
-        {menuCategories.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
-            className={`flex flex-col items-center gap-4 transition-all flex-shrink-0 snap-center min-w-[110px] ${
-              activeCategory === cat.id
-                ? "scale-110"
-                : "opacity-40 grayscale hover:opacity-100 hover:grayscale-0"
-            }`}
-          >
-            <div
-              className={`w-16 h-16 md:w-20 md:h-20 rounded-[1.8rem] flex items-center justify-center text-3xl md:text-4xl shadow-lg transition-all ${
-                activeCategory === cat.id
-                  ? "bg-sbGreen text-white"
-                  : "bg-sbCream text-sbDark"
-              }`}
-            >
-              {cat.emoji}
-            </div>
-            <span
-              className={`text-[10px] font-black uppercase tracking-[0.2em] ${
-                activeCategory === cat.id ? "text-sbGreen" : "text-sbDark/40"
-              }`}
-            >
-              {cat.label}
-            </span>
-          </button>
-        ))}
-
-        <div className="hidden md:flex flex-col items-center gap-2 border-l border-gray-100 pl-10 ml-4 min-w-[160px]">
-          <p className="text-[10px] font-black text-sbDark/20 uppercase tracking-[0.2em]">
-            Max: ₹{maxPrice}
-          </p>
-          <input
-            type="range"
-            min="100"
-            max="500"
-            value={maxPrice}
-            onChange={(e) => setMaxPrice(parseInt(e.target.value))}
-            className="w-full h-1.5 bg-sbLight rounded-lg appearance-none cursor-pointer accent-sbGreen"
-          />
-        </div>
-      </div>
-
-      {/* Catalog */}
-      <main className="p-8 md:p-16 lg:p-24 max-w-[1536px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-16">
-          {filteredItems.map((item) => {
-            const quantity = getItemQuantity(item);
+      {/* Text-only Categories */}
+      <div className="sticky top-16 z-30 border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-md md:top-20">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
+          {menuCategories.map((category) => {
+            const isActive = activeCategory === category.id;
 
             return (
-              <div
-                key={item._id}
-                className="group relative bg-white rounded-[3.5rem] p-8 hover:shadow-4xl transition-all duration-500 border border-gray-50 flex flex-col"
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => setActiveCategory(category.id)}
+                className={`shrink-0 rounded-full border px-4 py-2.5 text-xs font-bold capitalize transition-all sm:px-5 sm:text-sm ${
+                  isActive
+                    ? "border-sbGreen bg-sbGreen text-white shadow-md"
+                    : "border-gray-200 bg-white text-sbDark/65 hover:border-sbGreen hover:text-sbGreen"
+                }`}
               >
-                {/* Veg Indicator */}
-                <div className="absolute top-8 left-8 flex items-center justify-center w-6 h-6 border-2 border-gray-100 rounded-lg bg-white p-1 shadow-sm">
-                  <div
-                    className={`w-full h-full rounded-full ${
-                      item.isVeg ? "bg-green-600" : "bg-red-600"
-                    }`}
-                  ></div>
-                </div>
-
-                {/* Product Visual */}
-                <div className="w-full aspect-square rounded-[3rem] bg-sbCream/50 flex items-center justify-center text-8xl md:text-9xl mb-10 shadow-inner group-hover:scale-105 transition-all duration-500 relative overflow-hidden">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="relative z-10 drop-shadow-2xl"
-                  />
-                  {item.popular && (
-                    <div className="absolute top-4 right-4 bg-sbGold text-white text-[9px] font-black px-4 py-1.5 rounded-xl uppercase tracking-widest shadow-lg">
-                      Popular
-                    </div>
-                  )}
-                  {/* Decorative background circle */}
-                  <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-sbGold/10 to-transparent"></div>
-                </div>
-
-                <div className="flex flex-col flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center gap-1 bg-sbGold/10 px-3 py-1 rounded-lg text-sbGold">
-                      <Star size={14} fill="currentColor" />
-                      <span className="text-xs font-black">{item.rating}</span>
-                    </div>
-                    <span className="text-[10px] text-sbDark/30 font-black uppercase tracking-widest">
-                      {item.calories}
-                    </span>
-                  </div>
-
-                  <h3 className="font-black text-2xl md:text-3xl text-sbDark mb-3 group-hover:text-sbGreen transition-colors line-clamp-1">
-                    {item.name}
-                  </h3>
-                  <p className="text-sbDark/40 text-sm mb-10 line-clamp-2 leading-relaxed font-medium italic">
-                    "{item.description}"
-                  </p>
-
-                  <div className="mt-auto pt-8 border-t border-sbCream flex items-center justify-between w-full">
-                    <div>
-                      <p className="text-[10px] font-black text-sbDark/20 uppercase tracking-widest mb-1">
-                        Price
-                      </p>
-                      <p className="text-3xl font-black text-sbDark tracking-tighter">
-                        ₹{item.price}
-                      </p>
-                    </div>
-
-                    {quantity > 0 ? (
-                      <div className="flex items-center gap-3 bg-sbGreen text-white rounded-2xl shadow-xl px-2 py-2">
-                        <button
-                          onClick={() => handleDecrement(item)}
-                          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white/20 active:scale-90 transition-all"
-                        >
-                          <Minus size={16} />
-                        </button>
-
-                        <span className="font-black text-sm w-4 text-center">
-                          {quantity}
-                        </span>
-
-                        <button
-                          onClick={() => handleIncrement(item)}
-                          className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-white/20 active:scale-90 transition-all"
-                        >
-                          <Plus size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleAddToCart(item)}
-                        className="bg-sbGreen text-white p-4 rounded-2xl shadow-xl hover:bg-sbDark transition-all active:scale-90"
-                      >
-                        <Plus size={20} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+                {category.label}
+              </button>
             );
           })}
         </div>
+      </div>
 
-        {filteredItems.length === 0 && (
-          <div className="py-48 text-center flex flex-col items-center">
-            <div className="w-32 h-32 bg-sbCream rounded-[2rem] flex items-center justify-center text-6xl mb-10 opacity-50 shadow-inner">
-              ☕
-            </div>
-            <h2 className="text-3xl font-black text-sbDark/20 uppercase tracking-[0.3em]">
-              No Match Found
+      {/* Menu Catalog */}
+      <main className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8">
+
+        {/* Result count and price filter */}
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-sbDark/60">
+            {filteredItems.length} items available
+          </p>
+
+          <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2">
+            <label
+              htmlFor="maxPrice"
+              className="whitespace-nowrap text-xs font-semibold text-sbDark/70"
+            >
+              Max ₹{maxPrice}
+            </label>
+
+            <input
+              id="maxPrice"
+              type="range"
+              min="100"
+              max="5000"
+              step="100"
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(Number(e.target.value))}
+              className="w-24 cursor-pointer accent-sbGreen sm:w-32"
+            />
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
+              <div
+                key={item}
+                className="animate-pulse overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 sm:rounded-3xl sm:p-4"
+              >
+                <div className="mb-3 aspect-[4/3] rounded-xl bg-gray-100" />
+                <div className="mb-2 h-4 w-3/4 rounded bg-gray-100" />
+                <div className="h-4 w-1/2 rounded bg-gray-100" />
+              </div>
+            ))}
+          </div>
+        ) : filteredItems.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-4">
+
+            {filteredItems.map((item) => {
+              const quantity = getItemQuantity(item);
+              const price =
+                item.variants?.length > 0
+                  ? item.variants[0].price
+                  : item.price;
+
+              return (
+                <div
+                  key={item._id}
+                  className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg sm:rounded-3xl sm:p-4"
+                >
+                  {/* Product Image */}
+                  <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl bg-sbCream/60 sm:rounded-2xl">
+                    {item.image ? (
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-sm text-sbDark/40">
+                        No image
+                      </div>
+                    )}
+
+                    {item.popular && (
+                      <span className="absolute left-2 top-2 rounded-full bg-sbGold px-2.5 py-1 text-[9px] font-extrabold uppercase tracking-wide text-white shadow sm:text-[10px]">
+                        Popular
+                      </span>
+                    )}
+
+                    {/* Veg / non-veg indicator */}
+                    {item.foodType && (
+                      <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded border border-white bg-white/95 shadow-sm">
+                        <span
+                          className={`h-2.5 w-2.5 rounded-full ${
+                            item.foodType === "veg"
+                              ? "bg-green-600"
+                              : "bg-red-600"
+                          }`}
+                        />
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Product Details */}
+                  <div className="flex flex-1 flex-col">
+                    {item.rating != null && (
+                      <div className="mb-2 flex items-center gap-1 self-start rounded-md bg-sbGold/10 px-2 py-1 text-sbGold">
+                        <Star size={12} fill="currentColor" />
+                        <span className="text-[10px] font-bold">
+                          {item.rating}
+                        </span>
+                      </div>
+                    )}
+
+                    <h3 className="line-clamp-2 min-h-10 text-sm font-extrabold leading-snug text-sbDark transition-colors group-hover:text-sbGreen sm:text-base">
+                      {item.name}
+                    </h3>
+
+                    {item.description && (
+                      <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-sbDark/50 sm:text-xs">
+                        {item.description}
+                      </p>
+                    )}
+
+                    {/* Price and Quantity */}
+                    <div className="mt-auto flex items-center justify-between gap-2 border-t border-gray-100 pt-3 mt-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] text-sbDark/45">
+                          Price
+                        </p>
+                        <p className="truncate text-base font-black text-sbDark sm:text-xl">
+                          ₹{price}
+                        </p>
+                      </div>
+
+                      {quantity > 0 ? (
+                        <div className="flex shrink-0 items-center gap-1 rounded-xl bg-sbGreen p-1 text-white shadow-sm sm:gap-2 sm:p-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleDecrement(item)}
+                            aria-label={`Remove one ${item.name}`}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-white/20 sm:h-8 sm:w-8"
+                          >
+                            <Minus size={15} />
+                          </button>
+
+                          <span className="min-w-4 text-center text-xs font-extrabold">
+                            {quantity}
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => handleIncrement(item)}
+                            aria-label={`Add one ${item.name}`}
+                            className="flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-white/20 sm:h-8 sm:w-8"
+                          >
+                            <Plus size={15} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleAddToCart(item)}
+                          aria-label={`Add ${item.name} to cart`}
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sbGreen text-white shadow-md transition hover:bg-sbDark active:scale-95 sm:h-10 sm:w-10"
+                        >
+                          <Plus size={19} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="py-20 text-center">
+            <h2 className="text-xl font-extrabold text-sbDark">
+              No items found
             </h2>
+            <p className="mt-2 text-sm text-sbDark/50">
+              Try another category or search term.
+            </p>
+
             <button
+              type="button"
               onClick={() => {
                 setActiveCategory("all");
                 setSearchQuery("");
-                setMaxPrice(500);
+                setMaxPrice(5000);
               }}
-              className="mt-12 sb-btn-outline-green"
+              className="mt-5 rounded-xl bg-sbGreen px-5 py-2.5 text-sm font-bold text-white transition hover:bg-sbDark"
             >
               Reset Filters
             </button>
           </div>
         )}
       </main>
+
+      {/* Floating Go To Cart Button - fixed to viewport */}
+      {totalCartItems > 0 && (
+        <button
+          type="button"
+          onClick={() => navigate("/cart")}
+          className="fixed bottom-5 left-4 z-[9999] flex items-center gap-3 rounded-2xl bg-sbGreen px-4 py-3 text-white shadow-2xl ring-1 ring-black/5 transition hover:bg-sbDark active:scale-95 sm:bottom-6 sm:left-6 sm:px-5 sm:py-4"
+        >
+          <span className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white/15">
+            <ShoppingCart size={21} />
+
+            <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-sbGold px-1 text-[10px] font-black text-white ring-2 ring-sbGreen">
+              {totalCartItems}
+            </span>
+          </span>
+
+          <span className="text-left">
+            <span className="block text-sm font-extrabold">
+              Go to Cart
+            </span>
+            <span className="block text-[10px] text-white/75">
+              {totalCartItems} {totalCartItems === 1 ? "item" : "items"} selected
+            </span>
+          </span>
+        </button>
+      )}
     </div>
   );
 };

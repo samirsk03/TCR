@@ -142,7 +142,7 @@ const Login = () => {
         <div className="mt-16 text-center">
 
           <h2 className="text-sbGreen font-bold text-xl mb-4 uppercase tracking-widest text-xs">
-            New to The Chocolate Room Rewards?
+            New to The Chocolate Room Salunke Vihar Rewards?
           </h2>
 
           <p className="text-gray-500 mb-8 max-w-xs mx-auto">

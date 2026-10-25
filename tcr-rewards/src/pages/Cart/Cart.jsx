@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   ShoppingCart,
@@ -31,21 +32,21 @@ export default function Cart() {
   const [currentOrder, setCurrentOrder] = useState(null);
   const [checkingOrder, setCheckingOrder] = useState(true);
   const [error, setError] = useState("");
-
-  // ---------------- CURRENT ORDER ----------------
+  const [tableNumber, setTableNumber] = useState("");
 
   const fetchCurrentOrder = async () => {
     try {
-      const res = await api.get(
-        "/session/my-current-order"
-      );
+      const res = await api.get("/session/my-current-order");
+      const order = res.data.data || null;
 
-      setCurrentOrder(res.data.data || null);
+      setCurrentOrder(order);
+
+      // Reuse the table number for any additional order
+      if (order?.tableNumber) {
+        setTableNumber(String(order.tableNumber));
+      }
     } catch (err) {
-      console.log(
-        "Current order error:",
-        err
-      );
+      console.log("Current order error:", err);
     } finally {
       setCheckingOrder(false);
     }
@@ -54,466 +55,457 @@ export default function Cart() {
   useEffect(() => {
     fetchCurrentOrder();
 
-    const interval = setInterval(
-      fetchCurrentOrder,
-      10000
-    );
+    const interval = setInterval(fetchCurrentOrder, 10000);
 
     return () => clearInterval(interval);
   }, []);
-
-  // ---------------- PLACE ORDER ----------------
 
   const handleOrder = async () => {
     try {
       setLoading(true);
       setError("");
 
-      await placeOrder();
+      const selectedTable = currentOrder
+        ? String(currentOrder.tableNumber || "").trim()
+        : tableNumber.trim();
 
+      if (!selectedTable) {
+        setError("Please enter your table number.");
+        return;
+      }
+
+      if (cart.length === 0) {
+        setError("Please add items to your cart first.");
+        return;
+      }
+
+      await placeOrder(selectedTable);
       await fetchCurrentOrder();
 
       alert("Order Placed Successfully 🎉");
-
     } catch (err) {
       setError(
         err.response?.data?.message ||
-        err.message ||
-        "Unable to place order."
+          err.message ||
+          "Unable to place order."
       );
     } finally {
       setLoading(false);
     }
   };
 
-  // ---------------- REWARD ----------------
+  const handleBringBill = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      await api.patch("/session/my-current-order/request-bill");
+      await fetchCurrentOrder();
+
+      alert("Bill requested! Our staff will assist you shortly.");
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Unable to request bill."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const rewardPoints = settings
-    ? Math.floor(
-      (subtotal *
-        settings.rewardPercentage) /
-      100
-    )
+    ? Math.floor((subtotal * settings.rewardPercentage) / 100)
     : 0;
 
+  const formatPrice = (amount) => Number(amount || 0).toFixed(2);
+
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10">
-
-      {/* ================================================= */}
-      {/* CURRENT ORDER */}
-      {/* ================================================= */}
-
-      {!checkingOrder && currentOrder && (
-        <div className="mb-12">
-
-          <div className="flex items-center justify-between mb-6">
-
-            <div>
-
-              <div className="flex items-center gap-3">
-
-                <ShoppingBag
-                  className="text-sbGreen"
-                  size={28}
-                />
-
-                <h1 className="text-3xl font-black">
-                  Current Order
-                </h1>
-
-              </div>
-
-              <p className="text-gray-500 mt-2">
-                Items already ordered
-              </p>
-
-            </div>
-
-            <button
-              onClick={fetchCurrentOrder}
-              className="flex items-center gap-2 px-4 py-2 border rounded-xl bg-white hover:bg-gray-50"
-            >
-              <RefreshCw size={17} />
-              Refresh
-            </button>
-
+    <div className="min-h-screen bg-[#fffaf5] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
+        {/* Page Header */}
+        <div className="mb-6 flex items-center gap-3">
+          <div className="rounded-2xl bg-[#f5e7d5] p-3 text-[#9b6a32]">
+            <ShoppingCart size={25} />
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border overflow-hidden">
+          <div>
+            <h1 className="text-2xl font-bold text-[#35251d]">
+              My Cart
+            </h1>
+            <p className="text-sm text-[#8b7769]">
+              Review your items before ordering
+            </p>
+          </div>
+        </div>
 
-            {/* STATUS */}
+        {/* Error Message */}
+        {error && (
+          <div className="mb-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <AlertCircle size={18} className="mt-0.5 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
 
-            <div className="bg-sbDark text-white p-6">
-
-              <div className="flex items-center gap-4">
-
-                <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center">
-
-                  {currentOrder.status ===
-                    "bill_requested" ? (
-                    <CheckCircle2
-                      className="text-sbGold"
-                      size={25}
-                    />
-                  ) : (
-                    <Clock
-                      className="text-sbGold"
-                      size={25}
-                    />
-                  )}
-
+        {/* Current Order */}
+        {checkingOrder ? (
+          <div className="mb-6 rounded-2xl border border-[#eee0d2] bg-white p-5 text-sm text-[#8b7769]">
+            Checking your current order...
+          </div>
+        ) : currentOrder ? (
+          <div className="mb-6 rounded-2xl border border-[#e7d3bd] bg-white p-5 shadow-sm">
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+              <div className="flex items-start gap-3">
+                <div className="rounded-xl bg-[#f5e7d5] p-3 text-[#9b6a32]">
+                  <ShoppingBag size={23} />
                 </div>
 
                 <div>
+                  <h2 className="text-lg font-bold text-[#35251d]">
+                    Your Current Order
+                  </h2>
 
-                  <div className="flex items-center gap-3">
-
-                    <h2 className="text-xl font-black">
-                      {currentOrder.status ===
-                        "bill_requested"
-                        ? "Bill Requested"
-                        : "Order Accepted"}
-                    </h2>
-
-                    <span className="bg-sbGold text-black px-3 py-1 rounded-full text-xs font-black uppercase">
-                      {currentOrder.status.replace(
-                        "_",
-                        " "
-                      )}
+                  <p className="mt-1 text-sm text-[#8b7769]">
+                    Order ID:{" "}
+                    <span className="font-medium text-[#35251d]">
+                      {currentOrder._id?.slice(-8).toUpperCase() || "N/A"}
                     </span>
-
-                  </div>
-
-                  <p className="text-white/60 text-sm mt-1">
-                    Order #
-                    {currentOrder._id
-                      .slice(-6)
-                      .toUpperCase()}
                   </p>
 
-                </div>
+                  {currentOrder.tableNumber && (
+                    <p className="mt-1 text-sm font-semibold text-[#9b6a32]">
+                      Table: {currentOrder.tableNumber}
+                    </p>
+                  )}
 
+                  <div className="mt-2 flex items-center gap-2">
+                    {currentOrder.status === "active" ? (
+                      <>
+                        <span className="h-2 w-2 rounded-full bg-green-500" />
+                        <span className="text-sm font-medium text-green-700">
+                          Order Active
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Clock size={15} className="text-amber-600" />
+                        <span className="text-sm font-medium text-amber-700">
+                          Bill Requested
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
 
+              <button
+                type="button"
+                onClick={fetchCurrentOrder}
+                disabled={loading}
+                className="flex items-center justify-center gap-2 rounded-xl border border-[#e7d3bd] px-4 py-2 text-sm font-medium text-[#76502d] transition hover:bg-[#fff7ed] disabled:opacity-50"
+              >
+                <RefreshCw size={16} />
+                Refresh
+              </button>
             </div>
 
-            {/* CURRENT ITEMS */}
+            {/* Current Order Items */}
+            {currentOrder.items?.length > 0 && (
+              <div className="mt-5 border-t border-[#f0e5da] pt-4">
+                <h3 className="mb-3 text-sm font-semibold text-[#35251d]">
+                  Items in your order
+                </h3>
 
-            <div className="p-6">
-
-              <div className="space-y-4">
-
-                {currentOrder.items.map(
-                  (item, index) => (
-
+                <div className="space-y-3">
+                  {currentOrder.items.map((item, index) => (
                     <div
-                      key={
-                        item._id ||
-                        index
-                      }
-                      className="flex justify-between items-center border-b pb-4 last:border-0 last:pb-0"
+                      key={item._id || `${item.menuId}-${index}`}
+                      className="flex items-center justify-between gap-3 text-sm"
                     >
-
                       <div>
-
-                        <h3 className="font-bold text-lg">
+                        <p className="font-medium text-[#35251d]">
                           {item.itemName}
-                        </h3>
+                        </p>
 
                         {item.variantName && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs text-[#8b7769]">
                             {item.variantName}
                           </p>
                         )}
 
-                        <p className="text-sm text-gray-500">
-                          Qty:{" "}
-                          {item.quantity}
+                        <p className="text-xs text-[#8b7769]">
+                          Qty: {item.quantity}
                         </p>
-
                       </div>
 
-                      <div className="text-right">
-
-                        <p className="font-black">
-                          ₹
-                          {item.price *
-                            item.quantity}
-                        </p>
-
-                        <p className="text-green-600 text-sm font-bold">
-                          +
-                          {(settings
-                            ? Math.floor(
-                              (item.price *
-                                settings.rewardPercentage) /
-                              100
-                            )
-                            : 0) *
-                            item.quantity}{" "}
-                          points
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  )
-                )}
-
-              </div>
-
-              <div className="border-t mt-6 pt-5 flex justify-between">
-
-                <span className="font-bold">
-                  Current Order Total
-                </span>
-
-                <span className="text-2xl font-black">
-                  ₹
-                  {currentOrder.totalAmount ||
-                    currentOrder.subtotal}
-                </span>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-      )}
-
-      {/* ================================================= */}
-      {/* NEW CART */}
-      {/* ================================================= */}
-
-      <div>
-
-        <div className="flex items-center gap-4 mb-8">
-
-          <div className="w-14 h-14 rounded-2xl bg-sbGreen/10 flex items-center justify-center">
-
-            <ShoppingCart
-              className="text-sbGreen"
-              size={28}
-            />
-
-          </div>
-
-          <div>
-
-            <h1 className="text-3xl font-black">
-              {currentOrder
-                ? "Add More Items"
-                : "My Cart"}
-            </h1>
-
-            <p className="text-gray-500">
-
-              {currentOrder
-                ? "Want something else? Add it to your order."
-                : "Review your order before placing it."}
-
-            </p>
-
-          </div>
-
-        </div>
-
-        {/* ERROR */}
-
-        {error && (
-          <div className="mb-6 bg-red-50 text-red-600 p-4 rounded-2xl flex gap-3">
-
-            <AlertCircle size={20} />
-
-            {error}
-
-          </div>
-        )}
-
-        {/* EMPTY CART */}
-
-        {cart.length === 0 ? (
-
-          <div className="bg-white border rounded-3xl p-12 text-center">
-
-            <ShoppingCart
-              size={50}
-              className="mx-auto text-gray-300"
-            />
-
-            <h2 className="text-2xl font-black mt-5">
-              {currentOrder
-                ? "Ready for something else?"
-                : "Your Cart is Empty"}
-            </h2>
-
-            <p className="text-gray-500 mt-2">
-
-              {currentOrder
-                ? "Go to the menu and add another item."
-                : "Add something delicious to get started."}
-
-            </p>
-
-          </div>
-
-        ) : (
-
-          <>
-
-            {/* CART ITEMS */}
-
-            <div className="space-y-5">
-
-              {cart.map((item) => (
-
-                <div
-                  key={
-                    item.menuId +
-                    item.variantName
-                  }
-                  className="bg-white border rounded-3xl p-6"
-                >
-
-                  <div className="flex flex-col md:flex-row justify-between gap-5">
-
-                    <div>
-
-                      <h2 className="font-black text-xl">
-                        {item.itemName}
-                      </h2>
-
-                      {item.variantName && (
-                        <p className="text-gray-500">
-                          {item.variantName}
-                        </p>
-                      )}
-
-                      <p className="mt-2 font-bold">
-                        ₹{item.price}
+                      <p className="font-semibold text-[#35251d]">
+                        ₹{formatPrice(item.price * item.quantity)}
                       </p>
-
-                      <p className="text-green-600 text-sm font-bold mt-1">
-                        +{(settings
-                            ? Math.floor(
-                              (item.price *
-                                settings.rewardPercentage) /
-                              100
-                            )
-                            : 0) *
-                            item.quantity}{" "}
-                        Reward Points
-                      </p>
-
                     </div>
-
-                    {/* CONTROLS */}
-
-                    <div className="flex items-center gap-3">
-
-                      <button
-                        onClick={() =>
-                          decreaseQuantity(
-                            item.menuId,
-                            item.variantName
-                          )
-                        }
-                        className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center"
-                      >
-                        <Minus size={18} />
-                      </button>
-
-                      <span className="w-8 text-center font-black">
-                        {item.quantity}
-                      </span>
-
-                      <button
-                        onClick={() =>
-                          increaseQuantity(
-                            item.menuId,
-                            item.variantName
-                          )
-                        }
-                        className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center"
-                      >
-                        <Plus size={18} />
-                      </button>
-
-                      <button
-                        onClick={() =>
-                          removeFromCart(
-                            item.menuId,
-                            item.variantName
-                          )
-                        }
-                        className="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-
-                    </div>
-
-                  </div>
-
+                  ))}
                 </div>
 
-              ))}
+                <div className="mt-4 flex justify-between border-t border-[#f0e5da] pt-3">
+                  <span className="font-semibold text-[#35251d]">
+                    Current Order Total
+                  </span>
 
+                  <span className="font-bold text-[#9b6a32]">
+                    ₹
+                    {formatPrice(
+                      currentOrder.totalAmount ??
+                        currentOrder.subtotal ??
+                        currentOrder.items.reduce(
+                          (total, item) =>
+                            total + item.price * item.quantity,
+                          0
+                        )
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Bring Bill */}
+            {currentOrder.status === "active" ? (
+              <button
+                type="button"
+                onClick={handleBringBill}
+                disabled={loading}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#9b6a32] px-5 py-3 font-semibold text-white transition hover:bg-[#805326] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <CheckCircle2 size={19} />
+                {loading ? "Please wait..." : "Bring Bill"}
+              </button>
+            ) : (
+              <div className="mt-5 rounded-xl bg-amber-50 p-3 text-center text-sm text-amber-800">
+                Your bill has been requested. Our staff will assist you shortly.
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Cart Items */}
+          <div className="lg:col-span-2">
+            <div className="rounded-2xl border border-[#eee0d2] bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="mb-5 text-lg font-bold text-[#35251d]">
+                {currentOrder ? "Add More Items" : "Cart Items"}
+              </h2>
+
+              {cart.length === 0 ? (
+                <div className="py-10 text-center">
+                  <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-[#fff3e5] text-[#b58a5a]">
+                    <ShoppingCart size={28} />
+                  </div>
+
+                  <h3 className="font-semibold text-[#35251d]">
+                    Your cart is empty
+                  </h3>
+
+                  <p className="mt-1 text-sm text-[#8b7769]">
+                    Browse the menu and add something you love.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {cart.map((item) => (
+                    <div
+                      key={`${item.menuId}-${item.variantName || ""}`}
+                      className="flex gap-3 border-b border-[#f0e5da] pb-4 last:border-0 last:pb-0 sm:gap-4"
+                    >
+                      {/* Product Image */}
+                      <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-[#fff3e5] sm:h-24 sm:w-24">
+                        {item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.itemName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-[#b58a5a]">
+                            <ShoppingBag size={25} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Product Details */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="font-semibold text-[#35251d]">
+                              {item.itemName}
+                            </h3>
+
+                            {item.variantName && (
+                              <p className="mt-0.5 text-xs text-[#8b7769]">
+                                {item.variantName}
+                              </p>
+                            )}
+
+                            <p className="mt-1 text-sm text-[#8b7769]">
+                              ₹{formatPrice(item.price)} each
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              removeFromCart(item.menuId, item.variantName || "")
+                            }
+                            aria-label={`Remove ${item.itemName}`}
+                            className="rounded-lg p-2 text-red-500 transition hover:bg-red-50"
+                          >
+                            <Trash2 size={17} />
+                          </button>
+                        </div>
+
+                        <div className="mt-3 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 rounded-lg border border-[#eee0d2] p-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                decreaseQuantity(
+                                  item.menuId,
+                                  item.variantName || ""
+                                )
+                              }
+                              aria-label="Decrease quantity"
+                              className="rounded-md p-1 text-[#76502d] hover:bg-[#fff3e5]"
+                            >
+                              <Minus size={15} />
+                            </button>
+
+                            <span className="min-w-4 text-center text-sm font-semibold text-[#35251d]">
+                              {item.quantity}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                increaseQuantity(
+                                  item.menuId,
+                                  item.variantName || ""
+                                )
+                              }
+                              aria-label="Increase quantity"
+                              className="rounded-md p-1 text-[#76502d] hover:bg-[#fff3e5]"
+                            >
+                              <Plus size={15} />
+                            </button>
+                          </div>
+
+                          <p className="font-bold text-[#35251d]">
+                            ₹
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* SUMMARY */}
+          {/* Summary */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-5 rounded-2xl border border-[#eee0d2] bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="mb-5 text-lg font-bold text-[#35251d]">
+                Order Summary
+              </h2>
 
-            <div className="mt-10 bg-white border rounded-3xl p-7">
+              {/* Table Number */}
+              {!currentOrder && (
+                <div className="mb-5">
+                  <label
+                    htmlFor="tableNumber"
+                    className="mb-2 block text-sm font-semibold text-[#35251d]"
+                  >
+                    Table Number
+                  </label>
 
-              <div className="flex justify-between">
+                  <input
+                    id="tableNumber"
+                    type="text"
+                    value={tableNumber}
+                    onChange={(e) => setTableNumber(e.target.value)}
+                    placeholder="Enter your table number"
+                    autoComplete="off"
+                    className="w-full rounded-xl border border-[#e7d3bd] bg-[#fffdfb] px-4 py-3 text-sm text-[#35251d] outline-none transition placeholder:text-[#b3a194] focus:border-[#9b6a32] focus:ring-2 focus:ring-[#9b6a32]/15"
+                  />
 
-                <span className="text-gray-500">
-                  New Items Subtotal
-                </span>
+                  <p className="mt-1 text-xs text-[#8b7769]">
+                    Enter the table number given to you at the café.
+                  </p>
+                </div>
+              )}
 
-                <span className="font-black">
-                  ₹{subtotal}
-                </span>
+              {currentOrder?.tableNumber && (
+                <div className="mb-5 flex items-center justify-between rounded-xl bg-[#fff7ed] p-3">
+                  <span className="text-sm text-[#76502d]">
+                    Table Number
+                  </span>
+                  <span className="font-bold text-[#9b6a32]">
+                    {currentOrder.tableNumber}
+                  </span>
+                </div>
+              )}
 
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#8b7769]">Cart Subtotal</span>
+                  <span className="font-medium text-[#35251d]">
+                    ₹{formatPrice(subtotal)}
+                  </span>
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <span className="text-[#8b7769]">
+                    Estimated Reward Points
+                  </span>
+                  <span className="font-medium text-green-700">
+                    +{rewardPoints} points
+                  </span>
+                </div>
               </div>
 
-              <div className="flex justify-between mt-4">
+              <div className="my-5 border-t border-dashed border-[#e7d3bd]" />
 
-                <span className="text-gray-500">
-                  Reward Points
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-[#35251d]">
+                  Cart Total
                 </span>
 
-                <span className="font-black text-green-600">
-                  +{rewardPoints}
+                <span className="text-xl font-bold text-[#9b6a32]">
+                  ₹{formatPrice(subtotal)}
                 </span>
-
               </div>
 
               <button
+                type="button"
                 onClick={handleOrder}
-                disabled={loading}
-                className="mt-7 w-full bg-sbGreen text-white py-4 rounded-2xl font-black text-lg disabled:opacity-50"
+                disabled={loading || cart.length === 0}
+                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-[#9b6a32] px-5 py-3 font-semibold text-white transition hover:bg-[#805326] disabled:cursor-not-allowed disabled:opacity-50"
               >
-
-                {loading
-                  ? "Placing Order..."
-                  : currentOrder
-                    ? "Add to Current Order"
-                    : "Place Order"}
-
+                {loading ? (
+                  <>
+                    <RefreshCw size={18} className="animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={18} />
+                    {currentOrder ? "Add to Current Order" : "Place Order"}
+                  </>
+                )}
               </button>
 
+              <p className="mt-3 text-center text-xs text-[#8b7769]">
+                Your order will be sent to our staff for confirmation.
+              </p>
             </div>
-
-          </>
-
-        )}
-
+          </div>
+        </div>
       </div>
-
     </div>
   );
-} 
+}

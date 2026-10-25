@@ -18,6 +18,8 @@ const orderItemSchema = new mongoose.Schema(
       default: "",
     },
 
+  
+
     quantity: {
       type: Number,
       required: true,
@@ -49,6 +51,12 @@ const orderRequestSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Session",
       default: null,
+    },
+
+      tableNumber: {
+      type: String,
+      required: true,
+      trim: true,
     },
 
     items: {

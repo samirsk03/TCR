@@ -1,6 +1,6 @@
 import express from "express";
 import { protect, authorize } from "../middleware/authMiddleware.js";
-import { getActiveSessions, getSessionById,getMyCurrentOrder , getMyTransactions, requestBill, generateBill, paySession, getSessionHistory } from "../controllers/sessionController.js";
+import { getActiveSessions,requestMyBill,  getSessionById, getMyCurrentOrder, getMyTransactions, requestBill, generateBill, paySession, getSessionHistory } from "../controllers/sessionController.js";
 
 const router = express.Router();
 
@@ -24,10 +24,16 @@ router.get(
 );
 
 router.get(
-    "/history",
-    protect,
-    authorize("admin", "staff"),
-    getSessionHistory
+  "/history",
+  protect,
+  authorize("admin", "staff"),
+  getSessionHistory
+);
+
+router.patch(
+  "/my-current-order/request-bill",
+  protect,
+  requestMyBill
 );
 
 router.get(

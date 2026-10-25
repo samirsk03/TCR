@@ -21,9 +21,9 @@ const menus = [
   { name: "Users", path: "/dashboard/users", icon: BookUser, roles: ["admin"] },
   { name: "Create User", path: "/dashboard/create-user", icon: UserPlus, roles: ["admin"] },
   { name: "Pending Orders", path: "/dashboard/pending-orders", icon: ClipboardList, roles: ["admin", "staff"] },
-  { name: "Offers", path: "/dashboard/offers", icon: BadgeIndianRupee, roles: ["admin"] },
   { name: "Active Sessions", path: "/dashboard/active-sessions", icon: UtensilsCrossed, roles: ["admin", "staff"] },
-  { name: "History", path: "/dashboard/history", icon: History, roles: ["admin"] },
+  { name: "Offers", path: "/dashboard/offers", icon: BadgeIndianRupee, roles: ["admin"] },
+  { name: "Billing History", path: "/dashboard/history", icon: History, roles: ["admin"] },
   { name: "Settings", path: "/dashboard/settings", icon: MonitorCog, roles: ["admin"] },
   { name: "Feedback", path: "/dashboard/feedback", icon: MessageSquareHeart, roles: ["admin"] },
 ];

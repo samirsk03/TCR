@@ -82,11 +82,11 @@ export const CartProvider = ({ children }) => {
       setCart((prev) =>
         prev.map((item) =>
           item.menuId === menuId &&
-          item.variantName === variantName
+            item.variantName === variantName
             ? {
-                ...item,
-                quantity: item.quantity + 1,
-              }
+              ...item,
+              quantity: item.quantity + 1,
+            }
             : item
         )
       );
@@ -102,11 +102,11 @@ export const CartProvider = ({ children }) => {
         prev
           .map((item) =>
             item.menuId === menuId &&
-            item.variantName === variantName
+              item.variantName === variantName
               ? {
-                  ...item,
-                  quantity: item.quantity - 1,
-                }
+                ...item,
+                quantity: item.quantity - 1,
+              }
               : item
           )
           .filter((item) => item.quantity > 0)
@@ -149,36 +149,33 @@ export const CartProvider = ({ children }) => {
 
   // ---------------- PLACE ORDER ----------------
 
-  const placeOrder = useCallback(async () => {
-    if (cart.length === 0) {
-      throw new Error("Cart is empty");
-    }
+  const placeOrder = useCallback(
+    async (tableNumber) => {
+      if (cart.length === 0) throw new Error("Cart is empty");
 
-    const token = localStorage.getItem("tcr_token");
+      const token = localStorage.getItem("tcr_token");
 
-    const res = await api.post(
-      "/order-request",
-      {
-        items: cart.map((item) => ({
-          menuId: item.menuId,
-          itemName: item.itemName,
-          variantName: item.variantName,
-          quantity: item.quantity,
-          price: item.price,
-          rewardPoints: item.rewardPoints,
-        })),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const res = await api.post(
+        "/order-request",
+        {
+          tableNumber,
+          items: cart.map((item) => ({
+            menuId: item.menuId,
+            itemName: item.itemName,
+            variantName: item.variantName,
+            quantity: item.quantity,
+            price: item.price,
+            rewardPoints: item.rewardPoints,
+          })),
         },
-      }
-    );
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    clearCart();
-
-    return res.data;
-  }, [cart, clearCart]);
+      clearCart();
+      return res.data;
+    },
+    [cart, clearCart]
+  );
 
   return (
     <CartContext.Provider
