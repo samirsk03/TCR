@@ -23,22 +23,42 @@ const HistoryPage = () => {
   const [toDate, setToDate] = useState("");
   const [sortOrder, setSortOrder] = useState("newest");
 
+
   const fetchHistory = async () => {
     setLoading(true);
+
     try {
-      const [billsRes, cancelledRes] = await Promise.all([
+      const [billsResult, cancelledResult] = await Promise.allSettled([
         api.get("/session/history"),
         api.get("/order-request/cancelled"),
       ]);
 
-      setBills(billsRes.data.data || []);
-      setCancelled(cancelledRes.data.data || []);
+      if (billsResult.status === "fulfilled") {
+        setBills(billsResult.value.data.data || []);
+      } else {
+        console.error(
+          "Failed to fetch paid bills:",
+          billsResult.reason?.response?.status,
+          billsResult.reason?.response?.data || billsResult.reason?.message
+        );
+      }
+
+      if (cancelledResult.status === "fulfilled") {
+        setCancelled(cancelledResult.value.data.data || []);
+      } else {
+        console.error(
+          "Failed to fetch cancelled orders:",
+          cancelledResult.reason?.response?.status,
+          cancelledResult.reason?.response?.data || cancelledResult.reason?.message
+        );
+      }
     } catch (err) {
-      console.log(err);
+      console.error("History error:", err);
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchHistory();

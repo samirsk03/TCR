@@ -490,7 +490,7 @@ export default function Cart() {
                   <>
                     <RefreshCw size={18} className="animate-spin" />
                     Processing...
-                  </>
+                  </> 
                 ) : (
                   <>
                     <ShoppingCart size={18} />

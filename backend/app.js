@@ -11,6 +11,7 @@ import offerRoutes from "./routes/offerRoutes.js";
 import storeSettingsRoutes from "./routes/storeSettingsRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import "./scheduler/birthdayScheduler.js";
+import helpRequestRoutes from "./routes/helpRequestRoutes.js";
 
 const app = express();
 
@@ -28,6 +29,8 @@ app.use(
 app.use("/api/auth", authRoutes);
 
 app.use("/api/settings", storeSettingsRoutes);
+
+app.use("/api/help-request", helpRequestRoutes);
 
 app.use("/api/feedback", feedbackRoutes);
 

@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate,  } from "react-router-dom";
+import { Routes, Route, Navigate, } from "react-router-dom";
 import { useEffect } from "react";
 import { useAuth } from "./context/AuthContext";
 
@@ -14,12 +14,13 @@ import Profile from "./pages/Profile/Profile";
 import Offers from "./pages/Offers";
 import Cart from "./pages/Cart/Cart";
 import ForgotPassword from "./pages/ForgotPassword";
+import HelpBell from "./components/HelpBell";
 
 // Components
 import Navbar from "./components/Navbar";
 import BottomNav from "./components/BottomNav";
 import NotificationPrompt from "./components/NotificationPrompt";
-import {listenForMessages} from "./services/notificationService";
+import { listenForMessages } from "./services/notificationService";
 
 const ProtectedRoute = ({ children }) => {
   const { isLoggedIn } = useAuth();
@@ -157,6 +158,7 @@ function App() {
 
       {isLoggedIn && <BottomNav />}
       {isLoggedIn && <NotificationPrompt />}
+      {isLoggedIn && <HelpBell />}
     </div>
   );
 }
