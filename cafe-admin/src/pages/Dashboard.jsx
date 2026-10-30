@@ -445,7 +445,102 @@ export default function Dashboard() {
         />
       </div>
 
-      
+      {/* Customer Help Requests */}
+      <SectionCard
+        title={`Customer Help Requests (${helpRequests.length})`}
+      >
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-gray-500">
+            Live updates every 5 seconds
+          </p>
+
+          <button
+            type="button"
+            onClick={enableHelpSound}
+            disabled={soundEnabled}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${
+              soundEnabled
+                ? "bg-green-100 text-green-700"
+                : "bg-[#6F4E37] text-white hover:bg-[#5b3f2d]"
+            }`}
+          >
+            {soundEnabled ? (
+              <Volume2 size={17} />
+            ) : (
+              <VolumeX size={17} />
+            )}
+
+            {soundEnabled ? "Sound Enabled" : "Enable Sound"}
+          </button>
+        </div>
+
+        {helpRequests.length === 0 ? (
+          <div className="rounded-xl bg-gray-50 px-4 py-8 text-center">
+            <CheckCircle2
+              size={30}
+              className="mx-auto mb-2 text-green-600"
+            />
+
+            <p className="font-medium text-gray-700">
+              No pending help requests
+            </p>
+
+            <p className="mt-1 text-sm text-gray-500">
+              New customer requests will appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {helpRequests.map((request) => (
+              <div
+                key={request._id}
+                className="flex flex-col justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="rounded-xl bg-amber-100 p-3 text-amber-700">
+                    <BellRing size={22} />
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-gray-900">
+                      Table {request.tableNumber}
+                    </h3>
+
+                    <p className="text-sm text-gray-600">
+                      {request.customerId?.name || "Customer"}
+                    </p>
+
+                    <p className="mt-1 text-xs text-gray-500">
+                      Requested at{" "}
+                      {new Date(request.createdAt).toLocaleTimeString(
+                        [],
+                        {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        }
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleResolveHelpRequest(request._id)
+                  }
+                  disabled={resolvingId === request._id}
+                  className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {resolvingId === request._id
+                    ? "Resolving..."
+                    : "Mark Resolved"}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </SectionCard>
+
       {/* Bottom Section */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <SectionCard title="Summary">
