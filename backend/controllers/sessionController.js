@@ -754,6 +754,8 @@ export const getMyCurrentOrder = async (req, res) => {
 
 
 export const requestMyBill = async (req, res) => {
+    console.log("rquest my bill controller hit ");
+    
   try {
     const session = await Session.findOne({
       customerId: req.user._id,
