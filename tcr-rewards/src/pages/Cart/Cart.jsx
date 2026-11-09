@@ -245,6 +245,24 @@ export default function Cart() {
 
                 <div className="mt-4 flex justify-between border-t border-[#f0e5da] pt-3">
                   <span className="font-semibold text-[#35251d]">
+                     Total Rewards Points 
+                  </span>
+
+                  <span className="font-bold text-[#9b6a32]">
+                    ₹ {rewardPoints}
+                    {formatPrice(
+                      currentOrder.totalAmount ??
+                        currentOrder.subtotal ??
+                        currentOrder.items.reduce(
+                          (total, item) =>
+                            total + item.price * item.quantity,
+                          0
+                        )
+                    )}
+                  </span>
+                </div>
+                <div className="mt-4 flex justify-between border-t border-[#f0e5da] pt-3">
+                  <span className="font-semibold text-[#35251d]">
                     Current Order Total
                   </span>
 
@@ -273,7 +291,7 @@ export default function Cart() {
                 className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#9b6a32] px-5 py-3 font-semibold text-white transition hover:bg-[#805326] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <CheckCircle2 size={19} />
-                {loading ? "Please wait..." : "Bring Bill"}
+                {loading ? "Please wait..." : "Ask For Bill"}
               </button>
             ) : (
               <div className="mt-5 rounded-xl bg-amber-50 p-3 text-center text-sm text-amber-800">
@@ -450,35 +468,7 @@ export default function Cart() {
                 </div>
               )}
 
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#8b7769]">Cart Subtotal</span>
-                  <span className="font-medium text-[#35251d]">
-                    ₹{formatPrice(subtotal)}
-                  </span>
-                </div>
-
-                <div className="flex justify-between text-sm">
-                  <span className="text-[#8b7769]">
-                    Estimated Reward Points
-                  </span>
-                  <span className="font-medium text-green-700">
-                    +{rewardPoints} points
-                  </span>
-                </div>
-              </div>
-
-              <div className="my-5 border-t border-dashed border-[#e7d3bd]" />
-
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-[#35251d]">
-                  Cart Total
-                </span>
-
-                <span className="text-xl font-bold text-[#9b6a32]">
-                  ₹{formatPrice(subtotal)}
-                </span>
-              </div>
+              
 
               <button
                 type="button"

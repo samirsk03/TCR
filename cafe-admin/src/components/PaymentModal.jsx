@@ -98,7 +98,7 @@ export default function PaymentModal({
   // ==========================================
 
   const customerWillEarn = Math.floor(
-    (finalPayable * rewardPercentage) / 100
+    (bill.subtotal  * rewardPercentage) / 100
   );
 
   return (

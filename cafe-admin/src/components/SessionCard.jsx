@@ -127,7 +127,7 @@ export default function SessionCard({
           >
             {session.status === "active"
               ? "ACTIVE"
-              : "BILL READY"}
+              : "BILL REQUESTED "}
           </span>
 
           <div className="mt-2 inline-flex items-center rounded-lg bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-800">
@@ -206,7 +206,7 @@ export default function SessionCard({
               {
                 settings
                   ? Math.floor(
-                    (session.totalAmount *
+                    (session.subtotal *
                       settings.rewardPercentage) /
                     100
                   )
@@ -342,9 +342,9 @@ export default function SessionCard({
                 <p className="text-gray-500 text-sm">
                   Rewards Earned
                 </p>
-
+ 
                 <p className="text-xl font-black text-green-600">
-                  +{settings ? Math.floor((session.totalAmount * settings.rewardPercentage) / 100) : 0}
+                  +{settings ? Math.floor((session.subtotal * settings.rewardPercentage) / 100) : 0}
                 </p>
 
               </div>

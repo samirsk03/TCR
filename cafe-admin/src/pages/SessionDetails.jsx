@@ -22,6 +22,7 @@ export default function SessionDetails() {
         try {
             const res = await api.get(`/session/${id}`);
             setSession(res.data.data);
+            
         } catch (err) {
             console.error(err);
             alert("Unable to load session.");
@@ -242,7 +243,7 @@ export default function SessionDetails() {
                         disabled={processing}
                         className="bg-[#6F4E37] text-white px-6 py-3 rounded"
                     >
-                        Generate Bill
+                        Generate Bill ff
                     </button>
 
                 )}

@@ -126,11 +126,11 @@ export const requestBill = async (req, res) => {
         //-----------------------------------------
 
         const earnedWithoutRedeem = Math.floor(
-            (billAmount * settings.rewardPercentage) / 100
+            (session.subtotal * settings.rewardPercentage) / 100
         );
 
         const earnedPoints = Math.floor(
-            (payableAmount * settings.rewardPercentage) / 100
+            (session.subtotal * settings.rewardPercentage) / 100
         );
 
         //-----------------------------------------
@@ -244,7 +244,7 @@ export const generateBill = async (req, res) => {
         );
 
         const earnedPoints = Math.floor(
-            (finalAmount *
+            (session.subtotal  *
                 settings.rewardPercentage) /
                 100
         );
@@ -415,7 +415,7 @@ export const paySession = async (req, res) => {
         //-----------------------------------------
 
         const earnedPoints = Math.floor(
-            (finalAmount *
+            (session.subtotal *
                 settings.rewardPercentage) /
                 100
         );

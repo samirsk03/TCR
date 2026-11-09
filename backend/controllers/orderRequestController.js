@@ -148,11 +148,12 @@ export const getCancelledOrders = async (req, res) => {
   }
 };
 
+
 export const acceptOrder = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find order
+    // Find order request
     const order = await OrderRequest.findById(id);
 
     if (!order) {
@@ -162,7 +163,6 @@ export const acceptOrder = async (req, res) => {
       });
     }
 
-    // Check status
     if (order.status !== "pending") {
       return res.status(400).json({
         success: false,
@@ -170,13 +170,15 @@ export const acceptOrder = async (req, res) => {
       });
     }
 
-    // Find active session
+    // Find an existing unpaid session
     let session = await Session.findOne({
       customerId: order.customerId,
-      status: "active",
-    });
+      status: {
+        $in: ["active", "bill_requested"],
+      },
+    }).sort({ createdAt: -1 });
 
-    // Create session if not exists
+    // Create a new session only if no unpaid session exists
     if (!session) {
       session = await Session.create({
         customerId: order.customerId,
@@ -187,13 +189,13 @@ export const acceptOrder = async (req, res) => {
       });
     }
 
-    // Add items to session
+    // Add new items to the existing session
     session.items.push(...order.items);
 
-    // Save order reference
+    // Save accepted order reference
     session.acceptedOrders.push(order._id);
 
-    // Calculate subtotal
+    // Recalculate subtotal
     session.subtotal = session.items.reduce(
       (total, item) => {
         return total + item.price * item.quantity;
@@ -201,23 +203,26 @@ export const acceptOrder = async (req, res) => {
       0
     );
 
-    // Calculate reward points from subtotal
-    // rewards will be calculated during payment
+    // Rewards are calculated during payment
     session.totalRewardPoints = 0;
 
-    // Calculate GST
+    // Recalculate GST
     session.gst =
       (session.subtotal * session.gstPercentage) / 100;
 
-    // Final amount
+    // Recalculate final amount
     session.totalAmount =
       session.subtotal +
       session.gst -
       session.discount;
 
+    // IMPORTANT:
+    // Do not change session.status here.
+    // If it was bill_requested, it stays bill_requested.
+
     await session.save();
 
-    // Update order
+    // Update order request
     order.status = "accepted";
     order.sessionId = session._id;
     order.acceptedBy = req.user._id;
@@ -225,19 +230,21 @@ export const acceptOrder = async (req, res) => {
 
     await order.save();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Order accepted successfully",
       data: {
         orderId: order._id,
         sessionId: session._id,
+        sessionStatus: session.status,
         subtotal: session.subtotal,
         gst: session.gst,
         totalAmount: session.totalAmount,
       },
     });
+
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
