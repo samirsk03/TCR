@@ -75,6 +75,7 @@ export default function ActiveSessions() {
     fetchHelpRequests();
 
     const interval = setInterval(() => {
+      fetchSessions();
       fetchHelpRequests();
     }, 10000);
 
