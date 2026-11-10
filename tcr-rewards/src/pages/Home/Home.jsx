@@ -136,7 +136,7 @@ const Home = () => {
             <div className="max-w-[1440px] mx-auto">
                <div className="flex items-center justify-center gap-4 mb-10">
                   <div className="w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center p-1 overflow-hidden">
-                     <img src="/logo.png" alt="The Chocolate Room" className="w-full h-full object-contain" />
+                     <img src="/logonew.jpeg" alt="The Chocolate Room" className="w-full h-full object-contain" />
                   </div>
                   <span className="font-black text-sbDark text-xl tracking-tighter">The Chocolate Room <span className="text-sbGreen">Salunke Vihar @</span></span>
                </div>

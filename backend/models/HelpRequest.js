@@ -9,21 +9,27 @@ const helpRequestSchema = new mongoose.Schema(
       required: true,
     },
 
-    sessionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Session",
-      required: true,
-    },
-
     tableNumber: {
       type: String,
       required: true,
+      trim: true,
     },
 
     status: {
       type: String,
-      enum: ["pending", "resolved"],
+      enum: ["pending", "attended", "resolved"],
       default: "pending",
+    },
+
+    attendedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    attendedAt: {
+      type: Date,
+      default: null,
     },
 
     resolvedBy: {

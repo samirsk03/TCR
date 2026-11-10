@@ -1,45 +1,42 @@
 
 import HelpRequest from "../models/HelpRequest.js";
-import Session from "../models/Session.js";
 
-// Customer: request assistance
+// Customer: create a help request
 export const createHelpRequest = async (req, res) => {
   try {
-    const session = await Session.findOne({
-      customerId: req.user._id,
-      status: { $in: ["active", "bill_requested"] },
-    }).sort({ createdAt: -1 });
+    const { tableNumber } = req.body;
 
-    if (!session) {
+    if (!tableNumber || !String(tableNumber).trim()) {
       return res.status(400).json({
         success: false,
-        message: "No active table session found.",
+        message: "Please provide your table number.",
       });
     }
 
-    // Avoid creating duplicate pending alerts for the same session.
+    const table = String(tableNumber).trim();
+
+    // Avoid duplicate pending requests for the same table
     const existingRequest = await HelpRequest.findOne({
-      sessionId: session._id,
+      tableNumber: table,
       status: "pending",
     });
 
     if (existingRequest) {
       return res.status(200).json({
         success: true,
-        message: "Your help request is already pending.",
+        message: "A help request is already pending for this table.",
         data: existingRequest,
       });
     }
 
     const helpRequest = await HelpRequest.create({
       customerId: req.user._id,
-      sessionId: session._id,
-      tableNumber: String(session.tableNumber),
+      tableNumber: table,
     });
 
     return res.status(201).json({
       success: true,
-      message: "Help request sent successfully.",
+      message: "Staff has been notified!",
       data: helpRequest,
     });
   } catch (error) {
@@ -50,7 +47,7 @@ export const createHelpRequest = async (req, res) => {
   }
 };
 
-// Admin/staff: get pending help requests
+// Admin/staff: get pending requests
 export const getPendingHelpRequests = async (req, res) => {
   try {
     const requests = await HelpRequest.find({ status: "pending" })
@@ -70,9 +67,42 @@ export const getPendingHelpRequests = async (req, res) => {
   }
 };
 
-// Admin/staff: resolve a request
-export const resolveHelpRequest = async (req, res) => {
+// Admin/staff: get all requests for a table
+export const getTableHelpRequests = async (req, res) => {
   try {
+    const tableNumber = String(req.params.tableNumber).trim();
+
+    const requests = await HelpRequest.find({ tableNumber })
+      .populate("customerId", "name phone")
+      .populate("attendedBy", "name")
+      .populate("resolvedBy", "name")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: requests.length,
+      data: requests,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// Admin/staff: update request status
+export const updateHelpRequestStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!["attended", "resolved"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid help request status.",
+      });
+    }
+
     const request = await HelpRequest.findById(req.params.id);
 
     if (!request) {
@@ -82,23 +112,23 @@ export const resolveHelpRequest = async (req, res) => {
       });
     }
 
-    if (request.status === "resolved") {
-      return res.status(200).json({
-        success: true,
-        message: "Request already resolved.",
-        data: request,
-      });
+    if (status === "attended") {
+      request.status = "attended";
+      request.attendedBy = req.user._id;
+      request.attendedAt = new Date();
     }
 
-    request.status = "resolved";
-    request.resolvedBy = req.user._id;
-    request.resolvedAt = new Date();
+    if (status === "resolved") {
+      request.status = "resolved";
+      request.resolvedBy = req.user._id;
+      request.resolvedAt = new Date();
+    }
 
     await request.save();
 
     return res.status(200).json({
       success: true,
-      message: "Help request resolved.",
+      message: `Request marked as ${status}.`,
       data: request,
     });
   } catch (error) {

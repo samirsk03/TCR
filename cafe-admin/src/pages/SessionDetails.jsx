@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
@@ -11,18 +12,24 @@ export default function SessionDetails() {
     const [showBill, setShowBill] = useState(
         location.state?.openPayment || false
     );
+
     const [billData, setBillData] = useState(
         location.state?.billData || null
     );
+
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
+
+    // Help Requests
+    const [helpRequests, setHelpRequests] = useState([]);
+    const [helpLoading, setHelpLoading] = useState(false);
+    const [updatingHelpId, setUpdatingHelpId] = useState(null);
 
     const fetchSession = async () => {
         try {
             const res = await api.get(`/session/${id}`);
             setSession(res.data.data);
-            
         } catch (err) {
             console.error(err);
             alert("Unable to load session.");
@@ -31,9 +38,55 @@ export default function SessionDetails() {
         }
     };
 
+    const fetchHelpRequests = async (tableNumber) => {
+        if (!tableNumber) return;
+
+        try {
+            setHelpLoading(true);
+
+            const res = await api.get(
+                `/help-request/table/${encodeURIComponent(tableNumber)}`
+            );
+
+            setHelpRequests(res.data.data || []);
+        } catch (err) {
+            console.error("Unable to fetch help requests:", err);
+        } finally {
+            setHelpLoading(false);
+        }
+    };
+
+    const updateHelpStatus = async (requestId, status) => {
+        try {
+            setUpdatingHelpId(requestId);
+
+            await api.patch(
+                `/help-request/${requestId}/status`,
+                { status }
+            );
+
+            await fetchHelpRequests(session.tableNumber);
+        } catch (err) {
+            console.error(err);
+
+            alert(
+                err.response?.data?.message ||
+                "Unable to update help request."
+            );
+        } finally {
+            setUpdatingHelpId(null);
+        }
+    };
+
     useEffect(() => {
         fetchSession();
-    }, []);
+    }, [id]);
+
+    useEffect(() => {
+        if (session?.tableNumber) {
+            fetchHelpRequests(session.tableNumber);
+        }
+    }, [session?.tableNumber]);
 
     const requestBill = async () => {
         try {
@@ -44,7 +97,6 @@ export default function SessionDetails() {
             );
 
             setBillData(res.data.data);
-
             setShowBill(true);
 
             fetchSession();
@@ -78,7 +130,6 @@ export default function SessionDetails() {
             fetchSession();
 
             navigate("/active-sessions");
-
         } catch (err) {
             console.error(err);
 
@@ -91,45 +142,228 @@ export default function SessionDetails() {
         }
     };
 
-    if (loading) return <div className="p-8">Loading...</div>;
+    if (loading) {
+        return <div className="p-8">Loading...</div>;
+    }
 
-    if (!session)
+    if (!session) {
         return <div className="p-8">Session Not Found</div>;
+    }
 
     return (
-        <div className="p-8">
+        <div className="p-4 md:p-8">
 
             <button
                 onClick={() => navigate(-1)}
-                className="mb-6 bg-gray-200 px-4 py-2 rounded"
+                className="mb-6 rounded bg-gray-200 px-4 py-2"
             >
                 ← Back
             </button>
 
-            <h1 className="text-3xl font-bold mb-2">
+            <h1 className="mb-2 text-3xl font-bold">
                 Session Details
             </h1>
 
-            <div className="bg-white rounded shadow p-6 mb-6">
+            {/* CUSTOMER DETAILS */}
+
+            <div className="mb-6 rounded bg-white p-6 shadow">
 
                 <h2 className="text-xl font-bold">
-                    {session.customerId.name}
+                    {session.customerId?.name}
                 </h2>
 
-                <p>{session.customerId.phone}</p>
+                <p>{session.customerId?.phone}</p>
 
                 <p className="mt-2">
-                    Status :
-                    <span className="font-bold ml-2">
+                    Table Number:
+                    <span className="ml-2 font-bold">
+                        {session.tableNumber}
+                    </span>
+                </p>
+
+                <p className="mt-2">
+                    Status:
+                    <span className="ml-2 font-bold">
                         {session.status}
                     </span>
                 </p>
 
             </div>
 
-            <div className="bg-white rounded shadow">
+            {/* HELP REQUESTS */}
 
-                <table className="w-full">
+            <div className="mb-6 rounded-xl bg-white p-6 shadow">
+
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+
+                    <div>
+                        <h2 className="text-xl font-bold">
+                            Help Requests
+                        </h2>
+
+                        <p className="text-sm text-gray-500">
+                            Table {session.tableNumber}
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={() =>
+                            fetchHelpRequests(session.tableNumber)
+                        }
+                        disabled={helpLoading}
+                        className="rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium hover:bg-gray-200 disabled:opacity-50"
+                    >
+                        {helpLoading ? "Refreshing..." : "↻ Refresh"}
+                    </button>
+
+                </div>
+
+                {helpLoading && helpRequests.length === 0 ? (
+
+                    <p className="py-4 text-gray-500">
+                        Loading help requests...
+                    </p>
+
+                ) : helpRequests.length === 0 ? (
+
+                    <div className="rounded-lg bg-gray-50 py-8 text-center">
+                        <p className="text-gray-500">
+                            No help requests for this table.
+                        </p>
+                    </div>
+
+                ) : (
+
+                    <div className="overflow-x-auto">
+
+                        <table className="w-full min-w-[650px]">
+
+                            <thead className="bg-gray-100">
+
+                                <tr>
+                                    <th className="p-3 text-left">
+                                        Customer
+                                    </th>
+
+                                    <th className="p-3 text-left">
+                                        Requested At
+                                    </th>
+
+                                    <th className="p-3 text-left">
+                                        Status
+                                    </th>
+
+                                    <th className="p-3 text-left">
+                                        Action
+                                    </th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {helpRequests.map((request) => (
+
+                                    <tr
+                                        key={request._id}
+                                        className="border-t"
+                                    >
+
+                                        <td className="p-3">
+                                            <p className="font-medium">
+                                                {request.customerId?.name || "Customer"}
+                                            </p>
+
+                                            <p className="text-xs text-gray-500">
+                                                {request.customerId?.phone || ""}
+                                            </p>
+                                        </td>
+
+                                        <td className="p-3 text-sm">
+                                            {new Date(
+                                                request.createdAt
+                                            ).toLocaleString()}
+                                        </td>
+
+                                        <td className="p-3">
+
+                                            <span
+                                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                                    request.status === "pending"
+                                                        ? "bg-red-100 text-red-700"
+                                                        : request.status === "attended"
+                                                        ? "bg-yellow-100 text-yellow-700"
+                                                        : "bg-green-100 text-green-700"
+                                                }`}
+                                            >
+                                                {request.status.toUpperCase()}
+                                            </span>
+
+                                        </td>
+
+                                        <td className="p-3">
+
+                                            <div className="flex gap-2">
+
+                                                {request.status === "pending" && (
+                                                    <button
+                                                        onClick={() =>
+                                                            updateHelpStatus(
+                                                                request._id,
+                                                                "attended"
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            updatingHelpId === request._id
+                                                        }
+                                                        className="rounded bg-yellow-500 px-3 py-2 text-xs text-white hover:bg-yellow-600 disabled:opacity-50"
+                                                    >
+                                                        {updatingHelpId === request._id
+                                                            ? "Updating..."
+                                                            : "Attended"}
+                                                    </button>
+                                                )}
+
+                                                {request.status !== "resolved" && (
+                                                    <button
+                                                        onClick={() =>
+                                                            updateHelpStatus(
+                                                                request._id,
+                                                                "resolved"
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            updatingHelpId === request._id
+                                                        }
+                                                        className="rounded bg-green-600 px-3 py-2 text-xs text-white hover:bg-green-700 disabled:opacity-50"
+                                                    >
+                                                        Resolve
+                                                    </button>
+                                                )}
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                ))}
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                )}
+
+            </div>
+
+            {/* SESSION ITEMS */}
+
+            <div className="overflow-x-auto rounded bg-white shadow">
+
+                <table className="w-full min-w-[650px]">
 
                     <thead className="bg-gray-100">
 
@@ -203,7 +437,9 @@ export default function SessionDetails() {
 
             </div>
 
-            <div className="bg-white rounded shadow mt-8 p-6">
+            {/* SESSION TOTALS */}
+
+            <div className="mt-8 rounded bg-white p-6 shadow">
 
                 <div className="flex justify-between py-2">
                     <span>Subtotal</span>
@@ -228,31 +464,31 @@ export default function SessionDetails() {
                 <hr className="my-3" />
 
                 <div className="flex justify-between text-2xl font-bold">
-                    <span>Total </span>
+                    <span>Total</span>
                     <span>₹{session.totalAmount}</span>
                 </div>
 
             </div>
 
-            <div className="mt-8 flex gap-4">
+            {/* BILL / PAYMENT */}
+
+            <div className="mt-8 flex flex-wrap gap-4">
 
                 {session.status === "active" && (
-
                     <button
                         onClick={requestBill}
                         disabled={processing}
-                        className="bg-[#6F4E37] text-white px-6 py-3 rounded"
+                        className="rounded bg-[#6F4E37] px-6 py-3 text-white disabled:opacity-50"
                     >
-                        Generate Bill ff
+                        Generate Bill
                     </button>
-
                 )}
 
                 {session.status === "bill_requested" && (
                     <button
                         onClick={() => setShowBill(true)}
                         disabled={processing}
-                        className="bg-[#6F4E37] text-white px-6 py-3 rounded"
+                        className="rounded bg-[#6F4E37] px-6 py-3 text-white disabled:opacity-50"
                     >
                         Take Payment
                     </button>

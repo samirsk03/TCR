@@ -311,7 +311,7 @@ export default function Dashboard() {
         </h1>
 
         <p className="mt-2 text-gray-500">
-          Welcome back, Samir 👋
+          Welcome back, {user?.name || "User" } 👋
         </p>
 
         {/* Period Filters */}

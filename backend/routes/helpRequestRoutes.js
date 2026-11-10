@@ -4,17 +4,21 @@ import express from "express";
 import {
   createHelpRequest,
   getPendingHelpRequests,
-  resolveHelpRequest,
+  getTableHelpRequests,
+  updateHelpRequestStatus,
 } from "../controllers/helpRequestController.js";
 
-import { protect, authorize } from "../middleware/authMiddleware.js";
+import {
+  protect,
+  authorize,
+} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Customer: send a help request
+// Customer
 router.post("/", protect, createHelpRequest);
 
-// Staff/Admin: get all pending help requests
+// Admin/staff
 router.get(
   "/pending",
   protect,
@@ -22,12 +26,18 @@ router.get(
   getPendingHelpRequests
 );
 
-// Staff/Admin: mark a help request as resolved
-router.patch(
-  "/:id/resolve",
+router.get(
+  "/table/:tableNumber",
   protect,
   authorize("staff", "admin"),
-  resolveHelpRequest
+  getTableHelpRequests
+);
+
+router.patch(
+  "/:id/status",
+  protect,
+  authorize("staff", "admin"),
+  updateHelpRequestStatus
 );
 
 export default router;
