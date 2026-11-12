@@ -113,7 +113,7 @@ export default function Cart() {
   };
 
   const rewardPoints = settings
-    ? Math.floor((subtotal * settings.rewardPercentage) / 100)
+    ? Math.floor((currentOrder?.subtotal * settings.rewardPercentage) / 100)
     : 0;
 
   const formatPrice = (amount) => Number(amount || 0).toFixed(2);
@@ -250,15 +250,7 @@ export default function Cart() {
 
                   <span className="font-bold text-[#9b6a32]">
                     ₹ {rewardPoints}
-                    {formatPrice(
-                      currentOrder.totalAmount ??
-                        currentOrder.subtotal ??
-                        currentOrder.items.reduce(
-                          (total, item) =>
-                            total + item.price * item.quantity,
-                          0
-                        )
-                    )}
+                    
                   </span>
                 </div>
                 <div className="mt-4 flex justify-between border-t border-[#f0e5da] pt-3">

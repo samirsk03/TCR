@@ -102,10 +102,7 @@ const Profile = () => {
 
             <div className="flex flex-wrap justify-center md:justify-start gap-x-6 gap-y-2 text-white/80 font-medium">
 
-              <span className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">
-                <Mail size={16} />
-                {user.phone}
-              </span>
+             
 
               <span className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">
                 <Phone size={16} />
@@ -114,7 +111,7 @@ const Profile = () => {
 
               <span className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">
                 <Calendar size={16} />
-                {new Date(user.createdAt).toLocaleDateString()}
+                {new Date(user.dateOfBirth).toLocaleDateString()}
               </span>
 
             </div>

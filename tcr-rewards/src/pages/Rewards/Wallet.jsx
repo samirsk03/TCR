@@ -214,19 +214,7 @@ const Wallet = () => {
 
           </div>
 
-          <div className="bg-white rounded-3xl shadow p-6">
 
-            <WalletIcon className="text-sbGold" />
-
-            <p className="text-xs uppercase mt-4 text-gray-400">
-              Lifetime Spend
-            </p>
-
-            <h2 className="text-3xl font-black mt-2">
-              ₹{Number(stats.spend || 0).toFixed(2)}
-            </h2>
-
-          </div>
 
           <div className="bg-white rounded-3xl shadow p-6">
 
@@ -282,102 +270,86 @@ const Wallet = () => {
 
       {/* FILTER BAR */}
 
-      <section className="max-w-7xl mx-auto px-6 mt-10">
 
-        <div className="bg-white rounded-3xl shadow p-5 flex flex-wrap gap-4 items-center">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-6">
+        <div className="bg-white rounded-2xl shadow-sm p-3">
+          <div className="grid grid-cols-2 gap-2">
 
-          <div className="flex items-center gap-2 bg-gray-100 rounded-xl px-4 py-3 flex-1">
+            {/* Search - Full Width */}
+            <div className="col-span-2 flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+              <Search size={16} className="shrink-0 text-gray-500" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search items..."
+                className="bg-transparent outline-none w-full text-sm"
+              />
+            </div>
 
-            <Search size={18} />
-
-            <input
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              placeholder="Search items..."
-              className="bg-transparent outline-none w-full"
-            />
-
-          </div>
-
-
-          {/* Start Date */}
-          <div className="flex flex-col gap-1 min-w-[140px]">
-            <label className="text-xs font-bold text-gray-500">
-              Start Date
-            </label>
+            {/* Start Date */}
             <input
               type="date"
               value={startDate}
               max={endDate || undefined}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-3 rounded-xl border border-gray-200 outline-none focus:border-sbGreen"
+              className="w-full min-w-0 px-2 py-2 rounded-lg border text-xs sm:text-sm"
+              aria-label="Start date"
             />
-          </div>
 
-          {/* End Date */}
-          <div className="flex flex-col gap-1 min-w-[140px]">
-            <label className="text-xs font-bold text-gray-500">
-              End Date
-            </label>
+            {/* End Date */}
             <input
               type="date"
               value={endDate}
               min={startDate || undefined}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-3 rounded-xl border border-gray-200 outline-none focus:border-sbGreen"
+              className="w-full min-w-0 px-2 py-2 rounded-lg border text-xs sm:text-sm"
+              aria-label="End date"
             />
-          </div>
 
-          {/* Clear Date Filters */}
-          {(startDate || endDate) && (
-            <button
-              type="button"
-              onClick={() => {
-                setStartDate("");
-                setEndDate("");
-              }}
-              className="px-4 py-3 rounded-xl text-sm font-bold text-red-500 bg-red-50 hover:bg-red-100 transition-colors"
+            {/* Payment */}
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value)}
+              className="w-full min-w-0 px-2 py-2 rounded-lg border bg-white text-xs sm:text-sm"
             >
-              Clear Dates
-            </button>
-          )}
+              <option value="all">All Payments</option>
+              <option value="cash">Cash</option>
+              <option value="upi">UPI</option>
+              <option value="card">Card</option>
+              <option value="swiggy">Swiggy</option>
+              <option value="zomato">Zomato</option>
+            </select>
 
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full min-w-0 px-2 py-2 rounded-lg border bg-white text-xs sm:text-sm"
+            >
+              <option value="latest">Latest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
 
-          <select
-            value={paymentFilter}
-            onChange={(e) =>
-              setPaymentFilter(e.target.value)
-            }
-            className="px-4 py-3 rounded-xl border"
-          >
-            <option value="all">All Payments</option>
-            <option value="cash">Cash</option>
-            <option value="upi">UPI</option>
-            <option value="card">Card</option>
-            <option value="swiggy">Swiggy</option>
-            <option value="zomato">Zomato</option>
-          </select>
+            {/* Clear Dates */}
+            {(startDate || endDate) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setStartDate("");
+                  setEndDate("");
+                }}
+                className="col-span-2 text-xs font-semibold text-red-500 hover:text-red-700 text-right px-2"
+              >
+                Clear date filters ✕
+              </button>
+            )}
 
-          <select
-            value={sortBy}
-            onChange={(e) =>
-              setSortBy(e.target.value)
-            }
-            className="px-4 py-3 rounded-xl border"
-          >
-            <option value="latest">
-              Latest First
-            </option>
-            <option value="oldest">
-              Oldest First
-            </option>
-          </select>
-
+          </div>
         </div>
-
       </section>
+
+
+
 
       {/* Transaction History */}
 
