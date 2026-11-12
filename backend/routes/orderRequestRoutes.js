@@ -1,6 +1,6 @@
 import express from "express";
 
-import { createOrderRequest, acceptOrder, getPendingOrders, cancelOrder, getCancelledOrders } from "../controllers/orderRequestController.js";
+import { createOrderRequest, acceptOrder, getPendingOrders, cancelOrder, getCancelledOrders, cancelOrderItem } from "../controllers/orderRequestController.js";
 
 import {
   protect, authorize
@@ -29,6 +29,12 @@ router.patch(
 );
 
 router.patch("/:id/cancel", protect, cancelOrder);
+
+router.patch(
+  "/:id/item/:itemId/cancel",
+  protect,
+  cancelOrderItem
+);
 
 router.get(
   "/cancelled",

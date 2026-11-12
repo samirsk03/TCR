@@ -18,8 +18,6 @@ const orderItemSchema = new mongoose.Schema(
       default: "",
     },
 
-  
-
     quantity: {
       type: Number,
       required: true,
@@ -36,7 +34,7 @@ const orderItemSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { _id: false }
+  { _id: true }
 );
 
 const orderRequestSchema = new mongoose.Schema(

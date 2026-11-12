@@ -250,3 +250,87 @@ export const acceptOrder = async (req, res) => {
     });
   }
 };
+
+
+export const cancelOrderItem = async (req, res) => {
+  try {
+    const { id, itemId } = req.params;
+
+    const order = await OrderRequest.findById(id);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    const isOwner =
+      order.customerId.toString() === req.user._id.toString();
+
+    const isStaffOrAdmin =
+      req.user.role === "admin" || req.user.role === "staff";
+
+    if (!isOwner && !isStaffOrAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    if (order.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Items can only be cancelled before order acceptance",
+      });
+    }
+
+    // Customer cancellation window: 60 seconds
+    if (isOwner && !isStaffOrAdmin) {
+      const diff = Date.now() - new Date(order.createdAt).getTime();
+
+      if (diff > 60000) {
+        return res.status(400).json({
+          success: false,
+          message: "Items can only be cancelled within 60 seconds",
+        });
+      }
+    }
+
+    const itemIndex = order.items.findIndex(
+      (item) => item._id.toString() === itemId
+    );
+
+    if (itemIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Item not found",
+      });
+    }
+
+    // Remove only the selected item
+    order.items.splice(itemIndex, 1);
+
+    // If no items remain, cancel the entire order
+    if (order.items.length === 0) {
+      order.status = "cancelled";
+      order.cancelledBy = req.user._id;
+      order.cancelledAt = new Date();
+      order.cancelReason = "All items cancelled";
+    }
+
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Item cancelled successfully",
+      data: order,
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
