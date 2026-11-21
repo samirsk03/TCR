@@ -1,10 +1,16 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { Search, Star, Plus, Minus, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import api from "../../services/api";
 import { useCart } from "../../context/CartContext";
+
+const getOrderVariant = (item) =>
+  item.variants?.find((variant) => variant.isAvailable !== false) ??
+  item.variants?.[0];
+
+const isOutOfStock = (item, variant) =>
+  item.isAvailable === false || variant?.isAvailable === false;
 
 const Menu = () => {
   const [menuItems, setMenuItems] = useState([]);
@@ -16,79 +22,61 @@ const Menu = () => {
   const { cart, addToCart, increaseQuantity, decreaseQuantity } = useCart();
   const navigate = useNavigate();
 
-  // Total quantity of items in the cart
   const totalCartItems = cart.reduce(
     (total, item) => total + item.quantity,
     0
   );
 
   useEffect(() => {
+    const fetchMenu = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/menus");
+        setMenuItems(res.data.data || []);
+      } catch (err) {
+        console.error("Unable to fetch menu:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchMenu();
   }, []);
 
-  const fetchMenu = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/menus");
-      setMenuItems(res.data.data || []);
-    } catch (err) {
-      console.error("Unable to fetch menu:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getVariantName = (item) => {
-    return item.variants?.length > 0 ? item.variants[0].name : "";
-  };
-
-  const getItemQuantity = (item) => {
-    const variantName = getVariantName(item);
+  const getItemQuantity = (item, variant) => {
+    const variantName = variant?.name ?? "";
 
     const cartLine = cart.find(
-      (c) =>
-        c.menuId === item._id &&
-        c.variantName === variantName
+      (line) =>
+        line.menuId === item._id && line.variantName === variantName
     );
 
     return cartLine?.quantity || 0;
   };
 
-  const handleAddToCart = (item) => {
-    if (item.variants?.length > 0) {
-      const firstVariant = item.variants[0];
-
-      addToCart({
-        menuId: item._id,
-        itemName: item.name,
-        variantName: firstVariant.name,
-        price: firstVariant.price,
-        rewardPoints: firstVariant.rewardPoints,
-        image: item.image,
-      });
-
-      return;
-    }
+  const handleAddToCart = (item, variant) => {
+    if (isOutOfStock(item, variant)) return;
 
     addToCart({
       menuId: item._id,
       itemName: item.name,
-      variantName: "",
-      price: item.price,
-      rewardPoints: item.rewardPoints,
+      variantName: variant?.name ?? "",
+      price: variant ? variant.price : item.price,
+      rewardPoints: variant ? variant.rewardPoints : item.rewardPoints,
       image: item.image,
     });
   };
 
-  const handleIncrement = (item) => {
-    increaseQuantity(item._id, getVariantName(item));
+  const handleIncrement = (item, variant) => {
+    if (isOutOfStock(item, variant)) return;
+
+    increaseQuantity(item._id, variant?.name ?? "");
   };
 
-  const handleDecrement = (item) => {
-    decreaseQuantity(item._id, getVariantName(item));
+  const handleDecrement = (item, variant) => {
+    decreaseQuantity(item._id, variant?.name ?? "");
   };
 
-  // Categories displayed as text only
   const menuCategories = useMemo(() => {
     const categories = [{ id: "all", label: "All Items" }];
 
@@ -109,28 +97,20 @@ const Menu = () => {
 
   const filteredItems = menuItems.filter((item) => {
     const matchesCategory =
-      activeCategory === "all" ||
-      item.category === activeCategory;
+      activeCategory === "all" || item.category === activeCategory;
 
     const matchesSearch = (item.name || "")
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
 
-    const price = Number(
-      item.variants?.length > 0
-        ? item.variants[0].price
-        : item.price
-    ) || 0;
+    const variant = getOrderVariant(item);
+    const price = Number(variant ? variant.price : item.price) || 0;
 
-    const matchesPrice = price <= maxPrice;
-
-    return matchesCategory && matchesSearch && matchesPrice;
+    return matchesCategory && matchesSearch && price <= maxPrice;
   });
 
   return (
     <div className="relative min-h-screen bg-[#faf8f4] pb-28">
-
-      {/* Header */}
       <header className="relative overflow-hidden bg-sbDark px-4 pb-12 pt-10 text-sbCream sm:px-6 sm:pb-16 sm:pt-14">
         <div className="relative z-10 mx-auto max-w-7xl">
           <p className="mb-2 text-xs font-bold uppercase tracking-[0.25em] text-sbGold">
@@ -141,7 +121,6 @@ const Menu = () => {
             Our <span className="text-sbGold">Menu</span>
           </h1>
 
-          {/* Search */}
           <div className="group relative max-w-xl">
             <Search
               size={19}
@@ -162,7 +141,6 @@ const Menu = () => {
         <div className="pointer-events-none absolute -bottom-24 left-10 h-52 w-52 rounded-full bg-sbGold/10 blur-3xl" />
       </header>
 
-      {/* Text-only Categories */}
       <div className="sticky top-16 z-30 border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur-md md:top-20">
         <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
           {menuCategories.map((category) => {
@@ -186,13 +164,10 @@ const Menu = () => {
         </div>
       </div>
 
-      {/* Menu Catalog */}
       <main className="mx-auto max-w-7xl px-3 py-5 sm:px-6 sm:py-8">
-
-        {/* Result count and price filter */}
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm font-semibold text-sbDark/60">
-            {filteredItems.length} items available
+            {filteredItems.length} items found
           </p>
 
           <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2">
@@ -231,20 +206,17 @@ const Menu = () => {
           </div>
         ) : filteredItems.length > 0 ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4 xl:grid-cols-4">
-
             {filteredItems.map((item) => {
-              const quantity = getItemQuantity(item);
-              const price =
-                item.variants?.length > 0
-                  ? item.variants[0].price
-                  : item.price;
+              const variant = getOrderVariant(item);
+              const quantity = getItemQuantity(item, variant);
+              const price = variant ? variant.price : item.price;
+              const outOfStock = isOutOfStock(item, variant);
 
               return (
                 <div
                   key={item._id}
                   className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg sm:rounded-3xl sm:p-4"
                 >
-                  {/* Product Image */}
                   <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-xl bg-sbCream/60 sm:rounded-2xl">
                     {item.image ? (
                       <img
@@ -265,7 +237,6 @@ const Menu = () => {
                       </span>
                     )}
 
-                    {/* Veg / non-veg indicator */}
                     {item.foodType && (
                       <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded border border-white bg-white/95 shadow-sm">
                         <span
@@ -279,7 +250,6 @@ const Menu = () => {
                     )}
                   </div>
 
-                  {/* Product Details */}
                   <div className="flex flex-1 flex-col">
                     {item.rating != null && (
                       <div className="mb-2 flex items-center gap-1 self-start rounded-md bg-sbGold/10 px-2 py-1 text-sbGold">
@@ -300,7 +270,12 @@ const Menu = () => {
                       </p>
                     )}
 
-                    {/* Price and Quantity */}
+                    {outOfStock && (
+                      <span className="mt-2 self-start rounded-md bg-red-50 px-2 py-1 text-xs font-bold text-red-700">
+                        Out of stock
+                      </span>
+                    )}
+
                     <div className="mt-auto flex items-center justify-between gap-2 border-t border-gray-100 pt-3 mt-3">
                       <div className="min-w-0">
                         <p className="text-[10px] text-sbDark/45">
@@ -315,7 +290,7 @@ const Menu = () => {
                         <div className="flex shrink-0 items-center gap-1 rounded-xl bg-sbGreen p-1 text-white shadow-sm sm:gap-2 sm:p-1.5">
                           <button
                             type="button"
-                            onClick={() => handleDecrement(item)}
+                            onClick={() => handleDecrement(item, variant)}
                             aria-label={`Remove one ${item.name}`}
                             className="flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-white/20 sm:h-8 sm:w-8"
                           >
@@ -328,23 +303,24 @@ const Menu = () => {
 
                           <button
                             type="button"
-                            onClick={() => handleIncrement(item)}
+                            onClick={() => handleIncrement(item, variant)}
+                            disabled={outOfStock}
                             aria-label={`Add one ${item.name}`}
-                            className="flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-white/20 sm:h-8 sm:w-8"
+                            className="flex h-7 w-7 items-center justify-center rounded-lg transition hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-40 sm:h-8 sm:w-8"
                           >
                             <Plus size={15} />
                           </button>
                         </div>
-                      ) : (
+                      ) : !outOfStock ? (
                         <button
                           type="button"
-                          onClick={() => handleAddToCart(item)}
+                          onClick={() => handleAddToCart(item, variant)}
                           aria-label={`Add ${item.name} to cart`}
                           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sbGreen text-white shadow-md transition hover:bg-sbDark active:scale-95 sm:h-10 sm:w-10"
                         >
                           <Plus size={19} />
                         </button>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -356,6 +332,7 @@ const Menu = () => {
             <h2 className="text-xl font-extrabold text-sbDark">
               No items found
             </h2>
+
             <p className="mt-2 text-sm text-sbDark/50">
               Try another category or search term.
             </p>
@@ -375,7 +352,6 @@ const Menu = () => {
         )}
       </main>
 
-      {/* Floating Go To Cart Button - fixed to viewport */}
       {totalCartItems > 0 && (
         <button
           type="button"
@@ -394,6 +370,7 @@ const Menu = () => {
             <span className="block text-sm font-extrabold">
               Go to Cart
             </span>
+
             <span className="block text-[10px] text-white/75">
               {totalCartItems} {totalCartItems === 1 ? "item" : "items"} selected
             </span>
