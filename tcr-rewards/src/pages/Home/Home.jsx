@@ -163,36 +163,6 @@ const Home = () => {
             </div>
          </section>
 
-<<<<<<< HEAD
-         {/* Latest Offers */}
-         {/*     <section className="py-20 px-6 md:px-12 max-w-[1440px] mx-auto w-full">
-            <div className="flex items-center justify-between mb-12">
-               <h2 className="text-3xl font-black text-sbDark tracking-tighter">Exclusive <span className="text-sbGreen">Offers</span></h2>
-               <Link to="/offers" className="text-sbDark/40 hover:text-sbGreen font-black text-xs uppercase tracking-widest transition-all flex items-center gap-2">
-                  View all <ChevronRight size={18} />
-               </Link>
-            </div>
-            <div className="flex gap-10 overflow-x-auto pb-12 hide-scrollbar snap-x">
-               {offers.map((offer) => (
-                  <div key={offer.id} className={`min-w-[340px] md:min-w-[500px] rounded-[3.5rem] bg-gradient-to-br ${offer.gradient} p-12 text-white flex flex-col justify-between snap-center shadow-3xl hover:shadow-sbGreen/20 transition-all group relative overflow-hidden`}>
-                     <div className="relative z-10">
-                        <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-xl text-[10px] font-black tracking-[0.2em] uppercase mb-8 inline-block shadow-sm">
-                           {offer.tag}
-                        </span>
-                        <h3 className="text-4xl md:text-5xl font-black mb-4 group-hover:translate-x-3 transition-transform duration-500 tracking-tighter leading-none">{offer.title}</h3>
-                        <p className="text-xl opacity-80 font-bold">{offer.subtitle}</p>
-                     </div>
-                     <div className="flex justify-between items-end mt-12 relative z-10">
-                        <p className="text-sm opacity-60 max-w-[220px] font-medium leading-relaxed">{offer.description}</p>
-                        <button className="bg-white text-sbDark font-black px-8 py-3 rounded-2xl text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Claim Now</button>
-                     </div>
-                     
-                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
-                  </div>
-               ))}
-            </div>
-         </section> */}
-=======
          {/* Offers from the API */}
          <section className="py-20 px-6 md:px-12 max-w-[1440px] mx-auto w-full">
             <div className="flex items-center justify-between gap-4 mb-12">
@@ -309,7 +279,6 @@ const Home = () => {
                </div>
             )}
          </section>
->>>>>>> df0d794 (offer , item unavailable)
 
          {/* Why Join Us */}
          <section className="bg-sbDark text-sbCream py-24 px-6 md:px-12 rounded-[4rem] mx-6 md:mx-12 mb-20 shadow-3xl">
